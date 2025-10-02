@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
+import com.example.wikitok.ui.AppRoot
 import com.example.wikitok.ui.theme.WikiTokTheme
 import com.example.wikitok.ui.FeedScreen
 
@@ -14,9 +15,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            WikiTokTheme {
-                FeedScreen()
-            }
+            WikiTokTheme { AppRoot() }
         }
     }
 }
