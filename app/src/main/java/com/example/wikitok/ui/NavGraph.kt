@@ -7,6 +7,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigation
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.fillMaxSize
 import com.wikitok.settings.LocalSettingsRepository
 import com.wikitok.settings.SettingsScreen
 import com.wikitok.settings.SettingsVmFactory
@@ -38,7 +40,7 @@ fun AppNavHost(navController: NavHostController, startDestination: String = "fee
         ) { backStackEntry ->
             val raw = backStackEntry.arguments?.getString("url").orEmpty()
             val decoded = try { java.net.URLDecoder.decode(raw, Charsets.UTF_8.name()) } catch (_: Throwable) { raw }
-            WebViewScreen(url = decoded, modifier = androidx.compose.ui.Modifier.fillMaxSize())
+            WebViewScreen(url = decoded, modifier = Modifier.fillMaxSize())
         }
     }
 }

@@ -70,13 +70,15 @@ private fun SettingSwitch(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SegmentedButtonsTheme(selected: AppTheme, onSelect: (AppTheme) -> Unit) {
-    SegmentedButtonRow {
-        AppTheme.values().forEach { theme ->
+    SingleChoiceSegmentedButtonRow {
+        AppTheme.values().forEachIndexed { index, theme ->
             SegmentedButton(
                 selected = theme == selected,
                 onClick = { onSelect(theme) },
+                shape = SegmentedButtonDefaults.itemShape(index = index, count = AppTheme.values().size),
                 label = { Text(when(theme){ AppTheme.SYSTEM->"Системная"; AppTheme.LIGHT->"Светлая"; AppTheme.DARK->"Тёмная" }) }
             )
         }
