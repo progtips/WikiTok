@@ -4,6 +4,7 @@ import com.example.wikitok.data.WikiRepository
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import okhttp3.Interceptor
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -17,8 +18,21 @@ private fun createRetrofit(): Retrofit {
         level = HttpLoggingInterceptor.Level.BASIC
     }
 
+    val uaInterceptor = Interceptor { chain ->
+        val request = chain.request().newBuilder()
+            .header(
+                "User-Agent",
+                "WikiTok/1.0 (https://wikitok.app; dev@wikitok.app)"
+            )
+            .header("Accept", "application/json")
+            .build()
+        chain.proceed(request)
+    }
+
     val client = OkHttpClient.Builder()
+        .addInterceptor(uaInterceptor)
         .addInterceptor(logger)
+        .retryOnConnectionFailure(true)
         .build()
 
     val json = Json {

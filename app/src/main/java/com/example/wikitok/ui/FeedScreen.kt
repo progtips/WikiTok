@@ -70,7 +70,11 @@ fun FeedScreen() {
         if (article == null) {
             ArticleCardPlaceholder(page)
         } else {
-            ArticleCard(a = article, onLike = { /* TODO: like action */ }, onDislike = { /* TODO: dislike action */ })
+            ArticleCard(
+                a = article,
+                onLike = { vm.onLike(article.id) },
+                onDislike = { /* можно обновлять отрицательное вознаграждение при необходимости */ }
+            )
         }
     }
 }
