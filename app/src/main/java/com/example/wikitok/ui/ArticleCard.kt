@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,6 +31,7 @@ fun ArticleCard(a: Article, onLike: () -> Unit, onDislike: () -> Unit) {
                 .align(Alignment.BottomStart)
                 .fillMaxWidth()
                 .background(Color.Black.copy(alpha = 0.4f))
+                .navigationBarsPadding()
                 .padding(16.dp)
         ) {
             Text(a.title, color = Color.White, style = MaterialTheme.typography.headlineSmall)

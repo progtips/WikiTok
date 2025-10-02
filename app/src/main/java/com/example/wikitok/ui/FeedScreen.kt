@@ -15,10 +15,12 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlin.math.max
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -65,6 +67,7 @@ fun FeedScreen() {
         lastStartMs = now
     }
 
+    val scope = rememberCoroutineScope()
     VerticalPager(state = pagerState) { page ->
         val article = items.getOrNull(page)
         if (article == null) {
@@ -72,8 +75,20 @@ fun FeedScreen() {
         } else {
             ArticleCard(
                 a = article,
-                onLike = { vm.onLike(article.id) },
-                onDislike = { /* можно обновлять отрицательное вознаграждение при необходимости */ }
+                onLike = {
+                    vm.onLike(article)
+                    scope.launch {
+                        val next = (page + 1).coerceAtMost(max(items.size - 1, 0))
+                        if (next != page) pagerState.animateScrollToPage(next)
+                    }
+                },
+                onDislike = {
+                    vm.onDislike(article)
+                    scope.launch {
+                        val next = (page + 1).coerceAtMost(max(items.size - 1, 0))
+                        if (next != page) pagerState.animateScrollToPage(next)
+                    }
+                }
             )
         }
     }

@@ -53,7 +53,37 @@ class FeedViewModel(
 
     fun onLike(id: String) {
         val article = _items.value.find { it.id == id } ?: return
-        bandit.update(article.topic, 1.0)
+        onLike(article)
+    }
+
+    fun onLike(a: Article) {
+        updateReward(a, like = true)
+        viewModelScope.launch {
+            try {
+                val rel = repo.loadRelated(a.title).take(3)
+                addAndResort(rel)
+            } catch (_: Throwable) {
+                // игнорируем ошибку сети при подмешивании
+            }
+        }
+    }
+
+    fun onDislike(a: Article) {
+        updateReward(a, like = false)
+    }
+
+    private fun updateReward(a: Article, like: Boolean) {
+        val dwellMs = dwell[a.id] ?: 0L
+        val dwellSec = dwellMs / 1000.0
+        val norm = (dwellSec / 15.0).coerceIn(0.0, 1.0)
+        val reward = norm + if (like) 1.0 else 0.0
+        bandit.update(TopicClassifier.classify(a), reward)
+    }
+
+    private fun addAndResort(newItems: List<Article>) {
+        val merged = _items.value + newItems
+        val resorted = merged.sortedByDescending { bandit.score(TopicClassifier.classify(it)) }
+        _items.value = resorted
     }
 }
 
