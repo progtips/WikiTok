@@ -1,0 +1,56 @@
+package com.example.wikitok.ui
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
+import com.example.wikitok.data.Article
+
+@Composable
+fun ArticleCard(a: Article, onLike: () -> Unit, onDislike: () -> Unit) {
+    Box(Modifier.fillMaxSize()) {
+        a.imageUrl?.let { CoilImage(it) }
+        Column(
+            Modifier
+                .align(Alignment.BottomStart)
+                .fillMaxWidth()
+                .background(Color.Black.copy(alpha = 0.4f))
+                .padding(16.dp)
+        ) {
+            Text(a.title, color = Color.White, style = MaterialTheme.typography.headlineSmall)
+            if (!a.description.isNullOrBlank()) Text(a.description!!, color = Color.White)
+            if (!a.extract.isNullOrBlank()) Text(a.extract!!, maxLines = 4, color = Color.White)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween) {
+                TextButton(onClick = onDislike) { Text("Пропустить") }
+                Button(onClick = onLike) { Text("Нравится") }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CoilImage(url: String) {
+    Image(
+        painter = rememberAsyncImagePainter(url),
+        contentDescription = null,
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.Crop
+    )
+}
+
+
