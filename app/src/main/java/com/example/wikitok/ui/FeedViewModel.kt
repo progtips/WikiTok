@@ -7,9 +7,15 @@ import com.example.wikitok.data.WikiRepository
 import com.example.wikitok.data.wiki.provideRepository
 import com.example.wikitok.personalization.EpsilonGreedy
 import com.example.wikitok.personalization.TopicClassifier
+import com.example.wikitok.personalization.loadBandit
+import com.example.wikitok.personalization.saveBandit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import android.content.Context
 
 class FeedViewModel(
     private val repo: WikiRepository = provideRepository()
@@ -21,6 +27,23 @@ class FeedViewModel(
     val bandit = EpsilonGreedy()
 
     init { viewModelScope.launch { prime(5) } }
+
+    fun attach(context: Context) {
+        // restore
+        viewModelScope.launch {
+            val restored = loadBandit(context)
+            if (restored.isNotEmpty()) bandit.restore(restored)
+        }
+        // save with debounce 3s on items changes (as a proxy for updates)
+        viewModelScope.launch {
+            items
+                .debounce(3000)
+                .distinctUntilChanged()
+                .collect {
+                    saveBandit(context, bandit.snapshot())
+                }
+        }
+    }
 
     suspend fun prime(n: Int) {
         val batch = mutableListOf<Article>()

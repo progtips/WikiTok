@@ -18,6 +18,13 @@ class EpsilonGreedy(private val epsilon: Double = 0.2) {
         val exploreBonus = if (Math.random() < epsilon) 1.0 else 0.0
         return exploit + exploreBonus * 0.01
     }
+
+    fun snapshot(): Map<Topic, ArmState> = arms.mapValues { (_, v) -> ArmState(v.n, v.rewardSum) }
+
+    fun restore(state: Map<Topic, ArmState>) {
+        arms.clear()
+        arms.putAll(state.mapValues { (_, v) -> ArmState(v.n, v.rewardSum) })
+    }
 }
 
 

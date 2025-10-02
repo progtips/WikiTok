@@ -19,6 +19,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.platform.LocalContext
 import kotlin.math.max
 import kotlinx.coroutines.launch
 
@@ -40,6 +41,8 @@ fun ArticleCardPlaceholder(index: Int) {
 @Composable
 fun FeedScreen() {
     val vm: FeedViewModel = viewModel()
+    val context = LocalContext.current
+    LaunchedEffect(Unit) { vm.attach(context) }
     val items by vm.items.collectAsState()
 
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { max(items.size, 1) })

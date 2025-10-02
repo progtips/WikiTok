@@ -20,6 +20,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import coil.decode.SvgDecoder
+import androidx.compose.ui.platform.LocalContext
 import com.example.wikitok.data.Article
 
 @Composable
@@ -38,7 +41,7 @@ fun ArticleCard(a: Article, onLike: () -> Unit, onDislike: () -> Unit) {
             if (!a.description.isNullOrBlank()) Text(a.description!!, color = Color.White)
             if (!a.extract.isNullOrBlank()) Text(a.extract!!, maxLines = 4, color = Color.White)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween) {
-                TextButton(onClick = onDislike) { Text("Пропустить") }
+                TextButton(onClick = onDislike) { Text("Пропустить", color = Color.White) }
                 Button(onClick = onLike) { Text("Нравится") }
             }
         }
@@ -47,8 +50,16 @@ fun ArticleCard(a: Article, onLike: () -> Unit, onDislike: () -> Unit) {
 
 @Composable
 private fun CoilImage(url: String) {
+    val painter = rememberAsyncImagePainter(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(url)
+            .addHeader("User-Agent", "WikiTok/1.0 (https://wikitok.app; dev@wikitok.app)")
+            .decoderFactory(SvgDecoder.Factory())
+            .crossfade(true)
+            .build()
+    )
     Image(
-        painter = rememberAsyncImagePainter(url),
+        painter = painter,
         contentDescription = null,
         modifier = Modifier.fillMaxSize(),
         contentScale = ContentScale.Crop
