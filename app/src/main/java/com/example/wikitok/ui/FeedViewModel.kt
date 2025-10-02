@@ -9,6 +9,8 @@ import com.example.wikitok.personalization.EpsilonGreedy
 import com.example.wikitok.personalization.TopicClassifier
 import com.example.wikitok.personalization.loadBandit
 import com.example.wikitok.personalization.saveBandit
+import com.example.wikitok.personalization.loadLanguage
+import com.example.wikitok.personalization.saveLanguage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
@@ -33,6 +35,7 @@ class FeedViewModel(
         viewModelScope.launch {
             val restored = loadBandit(context)
             if (restored.isNotEmpty()) bandit.restore(restored)
+            loadLanguage(context)?.let { _language.value = it }
         }
         // save with debounce 3s on items changes (as a proxy for updates)
         viewModelScope.launch {
@@ -42,6 +45,18 @@ class FeedViewModel(
                 .collect {
                     saveBandit(context, bandit.snapshot())
                 }
+        }
+    }
+
+    private val _language = MutableStateFlow("ru")
+    val language: StateFlow<String> = _language
+
+    fun changeLanguage(context: Context, lang: String) {
+        _language.value = lang
+        viewModelScope.launch { saveLanguage(context, lang) }
+        // Перезагрузить текущий пул, чтобы применить язык
+        viewModelScope.launch {
+            prime(3)
         }
     }
 
@@ -56,12 +71,9 @@ class FeedViewModel(
                 // пропускаем ошибочную загрузку, не падаем
             }
         }
-        val current = _items.value
-        val viewed = current.filter { dwell.containsKey(it.id) }
-        val unviewedPool = current.filterNot { dwell.containsKey(it.id) } + batch
-        val enriched = unviewedPool.map { it.copy(topic = TopicClassifier.classify(it)) }
-        val sorted = enriched.sortedByDescending { bandit.score(it.topic) }
-        _items.value = viewed + sorted
+        // Не меняем порядок уже показанных карточек; добавляем новую пачку, отсортированную бандитом, в конец
+        val sortedNew = batch.sortedByDescending { bandit.score(it.topic) }
+        _items.value = _items.value + sortedNew
     }
 
     fun onNeedMore() { viewModelScope.launch { prime(5) } }
@@ -104,9 +116,9 @@ class FeedViewModel(
     }
 
     private fun addAndResort(newItems: List<Article>) {
-        val merged = _items.value + newItems
-        val resorted = merged.sortedByDescending { bandit.score(TopicClassifier.classify(it)) }
-        _items.value = resorted
+        // Сортируем только новую подмешанную группу и добавляем в конец, не трогая существующий порядок
+        val sortedNew = newItems.sortedByDescending { bandit.score(TopicClassifier.classify(it)) }
+        _items.value = _items.value + sortedNew
     }
 }
 

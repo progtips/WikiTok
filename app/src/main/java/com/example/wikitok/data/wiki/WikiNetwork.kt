@@ -9,6 +9,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.ExperimentalSerializationApi
 import okhttp3.MediaType.Companion.toMediaType
+import java.util.Locale
 
 private const val BASE_URL = "https://ru.wikipedia.org/api/rest_v1/"
 
@@ -19,12 +20,14 @@ private fun createRetrofit(): Retrofit {
     }
 
     val uaInterceptor = Interceptor { chain ->
+        val lang = Locale.getDefault().language.takeIf { it.isNotBlank() } ?: "ru"
         val request = chain.request().newBuilder()
             .header(
                 "User-Agent",
                 "WikiTok/1.0 (https://wikitok.app; dev@wikitok.app)"
             )
             .header("Accept", "application/json")
+            .header("Accept-Language", lang)
             .build()
         chain.proceed(request)
     }

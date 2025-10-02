@@ -18,6 +18,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import android.content.Intent
+import android.net.Uri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.platform.LocalContext
 import kotlin.math.max
@@ -91,6 +93,10 @@ fun FeedScreen() {
                         val next = (page + 1).coerceAtMost(max(items.size - 1, 0))
                         if (next != page) pagerState.animateScrollToPage(next)
                     }
+                },
+                onOpen = {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(article.url))
+                    context.startActivity(intent)
                 }
             )
         }

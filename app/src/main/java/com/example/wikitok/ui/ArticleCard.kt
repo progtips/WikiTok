@@ -1,6 +1,7 @@
 package com.example.wikitok.ui
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,8 +28,11 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.wikitok.data.Article
 
 @Composable
-fun ArticleCard(a: Article, onLike: () -> Unit, onDislike: () -> Unit) {
-    Box(Modifier.fillMaxSize()) {
+fun ArticleCard(a: Article, onLike: () -> Unit, onDislike: () -> Unit, onOpen: () -> Unit) {
+    Box(Modifier
+        .fillMaxSize()
+        .clickable { onOpen() }
+    ) {
         a.imageUrl?.let { CoilImage(it) }
         Column(
             Modifier
@@ -61,8 +66,10 @@ private fun CoilImage(url: String) {
     Image(
         painter = painter,
         contentDescription = null,
-        modifier = Modifier.fillMaxSize(),
-        contentScale = ContentScale.Crop
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight(),
+        contentScale = ContentScale.FillWidth
     )
 }
 

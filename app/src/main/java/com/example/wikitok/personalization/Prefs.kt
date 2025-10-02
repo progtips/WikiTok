@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.first
 
 private const val STORE_NAME = "wikitok_prefs"
@@ -15,6 +16,7 @@ val Context.dataStore by preferencesDataStore(name = STORE_NAME)
 
 private fun meanKey(topic: Topic) = doublePreferencesKey("bandit_mean_${'$'}{topic.name}")
 private fun nKey(topic: Topic) = intPreferencesKey("bandit_n_${'$'}{topic.name}")
+private val langKey = stringPreferencesKey("lang")
 
 suspend fun saveBandit(context: Context, snapshot: Map<Topic, ArmState>) {
     context.dataStore.edit { prefs: MutablePreferences ->
@@ -36,6 +38,17 @@ suspend fun loadBandit(context: Context): Map<Topic, ArmState> {
         }
     }
     return map
+}
+
+suspend fun saveLanguage(context: Context, lang: String) {
+    context.dataStore.edit { prefs ->
+        prefs[langKey] = lang
+    }
+}
+
+suspend fun loadLanguage(context: Context): String? {
+    val prefs = context.dataStore.data.first()
+    return prefs[langKey]
 }
 
 
