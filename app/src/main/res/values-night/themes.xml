@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="wiki_background_dark">#FF121212</color>
+    <color name="wiki_surface_dark">#FF1E1E1E</color>
+
+    <style name="Theme.WikiTok" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/wiki_background_dark</item>
+    </style>
+</resources>
+
