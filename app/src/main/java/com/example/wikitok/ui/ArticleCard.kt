@@ -32,27 +32,22 @@ fun ArticleCard(
     onOpen: () -> Unit,
     onOpenSettings: () -> Unit
 ) {
+    // Подложка карточки = surface (как и у "текстовых" областей в теме)
     Box(
         Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface)
             .clickable { onOpen() }
     ) {
-        // Центрируем блок изображения по вертикали на странице
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            a.imageUrl?.let {
-                WikiImage(
-                    url = it,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.Center)
-                )
-            }
+        // ВАЖНО: не центрируем по экрану — центрирование по вертикали делается внутри WikiImage
+        a.imageUrl?.let {
+            WikiImage(
+                url = it,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
 
-        // Нижняя панель с текстами и действиями — остаётся прижатой к низу
+        // Нижняя панель остаётся прижатой к низу
         Column(
             Modifier
                 .align(Alignment.BottomStart)

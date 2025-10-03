@@ -45,13 +45,13 @@ fun WikiImage(
         model = request,
         contentDescription = null,
 
-        // Плейсхолдеры с минимальной высотой и совпадающим фоном
+        // Плейсхолдеры: та же подложка, что и у экрана
         loading = {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = minHeightDp)
-                    .background(MaterialTheme.colorScheme.surface),
+                    .background(MaterialTheme.colorScheme.background),
                 contentAlignment = Alignment.Center
             ) {}
         },
@@ -60,7 +60,7 @@ fun WikiImage(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = minHeightDp)
-                    .background(MaterialTheme.colorScheme.surface),
+                    .background(MaterialTheme.colorScheme.background),
                 contentAlignment = Alignment.Center
             ) {}
         },
@@ -85,13 +85,15 @@ fun WikiImage(
                 val targetHeight = if (naturalHeightDp < panoramaHeightDp) panoramaHeightDp else naturalHeightDp
                 val finalHeight = if (targetHeight < minHeightDp) minHeightDp else targetHeight
 
+                // «Белое поле» (подложка) = фон экрана
                 Box(
                     modifier = modifier
                         .fillMaxWidth()
                         .height(finalHeight)
-                        .background(MaterialTheme.colorScheme.surface),
+                        .background(MaterialTheme.colorScheme.background),
                     contentAlignment = Alignment.Center
                 ) {
+                    // Внутренняя рамка: даём реальную высоту по аспекту → картинка центрируется по вертикали внутри поля
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -101,6 +103,7 @@ fun WikiImage(
                             painter = p,
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(),
+                            // Для панорам оставляем Crop — чтобы не превращались в узкую полоску
                             contentScale = ContentScale.Crop,
                             alignment = Alignment.Center
                         )
@@ -121,7 +124,7 @@ fun WikiImage(
                     modifier = modifier
                         .fillMaxWidth()
                         .height(targetHeight)
-                        .background(MaterialTheme.colorScheme.surface),
+                        .background(MaterialTheme.colorScheme.background),
                     contentAlignment = Alignment.Center
                 ) {
                     Box(
@@ -133,6 +136,7 @@ fun WikiImage(
                             painter = p,
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(),
+                            // Fit — без обрезки, аккуратно в пределах рамки
                             contentScale = ContentScale.Fit,
                             alignment = Alignment.Center
                         )
