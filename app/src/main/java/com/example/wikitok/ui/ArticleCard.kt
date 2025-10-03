@@ -32,14 +32,14 @@ fun ArticleCard(
     onOpen: () -> Unit,
     onOpenSettings: () -> Unit
 ) {
-    // Подложка карточки = surface (как и у "текстовых" областей в теме)
+    // Подложка карточки = background (серый из темы), чтобы фон за картинкой не был белым
     Box(
         Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.background)
             .clickable { onOpen() }
     ) {
-        // ВАЖНО: не центрируем по экрану — центрирование по вертикали делается внутри WikiImage
+        // Центрирование по вертикали происходит внутри WikiImage (через внутреннюю рамку aspectRatio)
         a.imageUrl?.let {
             WikiImage(
                 url = it,
@@ -47,7 +47,7 @@ fun ArticleCard(
             )
         }
 
-        // Нижняя панель остаётся прижатой к низу
+        // Нижняя панель с полу-прозрачной плашкой — без изменений
         Column(
             Modifier
                 .align(Alignment.BottomStart)
