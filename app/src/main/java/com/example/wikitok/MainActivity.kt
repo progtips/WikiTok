@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.material3.MaterialTheme
@@ -17,12 +18,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            WikiTokTheme(darkTheme = androidx.compose.foundation.isSystemInDarkTheme(), dynamicColor = false) {
+            // ВАЖНО: dynamicColor = false, чтобы система не подсовывала белый фон
+            WikiTokTheme(dynamicColor = false) {
+                // Двойная страховка: Surface + Box с фоном темы
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppRoot()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ) {
+                        AppRoot()
+                    }
                 }
             }
         }

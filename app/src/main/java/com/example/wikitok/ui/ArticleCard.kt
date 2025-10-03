@@ -32,11 +32,11 @@ fun ArticleCard(
     onOpen: () -> Unit,
     onOpenSettings: () -> Unit
 ) {
-    // Подложка карточки = background (серый из темы), чтобы фон за картинкой не был белым
+    // Подложка карточки: временно ставим явную мадженту для диагностики
     Box(
         Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(Color(0xFFFF00FF))
             .clickable { onOpen() }
     ) {
         // Центрирование по вертикали происходит внутри WikiImage (через внутреннюю рамку aspectRatio)

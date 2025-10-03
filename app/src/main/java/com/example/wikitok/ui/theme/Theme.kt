@@ -16,7 +16,7 @@ private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
     tertiary = Pink80,
-    background = Color(0xFF121212),   // было: Color.Black.copy(alpha = 0.4f)
+    background = Color(0xFFFF00FF),   // ядрёная маджента для проверки фона
     surface    = Color(0xFF1E1E1E),   // было: Color.Black.copy(alpha = 0.6f)
     onBackground = Color(0xFFECECEC),
     onSurface    = Color(0xFFECECEC)
@@ -26,7 +26,7 @@ private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
     tertiary = Pink40,
-    background = Color(0xFFF2F2F2),   // мягкий серый фон экрана
+    background = Color(0xFFFF00FF),   // ядрёная маджента для проверки фона
     surface    = Color(0xFFFFFFFF),   // карточки/плашки
     onBackground = Color(0xFF1C1B1F),
     onSurface    = Color(0xFF1C1B1F)

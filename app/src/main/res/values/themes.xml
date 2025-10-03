@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="wiki_background_light">#FFF2F2F2</color>
-    <color name="wiki_surface_light">#FFFFFFFF</color>
+    <style name="Theme.WikiTok" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- критично: заливка окна -->
+        <item name="android:windowBackground">@color/app_window_background_light</item>
+        <item name="windowBackground">@color/app_window_background_light</item>
 
-    <style name="Theme.WikiTok" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:windowBackground">@color/wiki_background_light</item>
+        <!-- опционально, но полезно -->
+        <item name="android:forceDarkAllowed">false</item>
     </style>
 </resources>

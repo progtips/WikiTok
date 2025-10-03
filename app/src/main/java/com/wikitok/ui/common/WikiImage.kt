@@ -41,6 +41,9 @@ fun WikiImage(
         .build()
 
     SubcomposeAsyncImage(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background),
         imageLoader = imageLoader,
         model = request,
         contentDescription = null,
@@ -93,17 +96,16 @@ fun WikiImage(
                         .background(MaterialTheme.colorScheme.background),
                     contentAlignment = Alignment.Center
                 ) {
-                    // Внутренняя рамка: даём реальную высоту по аспекту → картинка центрируется по вертикали внутри поля
+                    // Заполняем весь контейнер, чтобы не оставалось просветов
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(aspect.coerceAtLeast(0.1f))
+                            .matchParentSize()
+                            .background(MaterialTheme.colorScheme.background)
                     ) {
                         Image(
                             painter = p,
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(),
-                            // Для панорам оставляем Crop — чтобы не превращались в узкую полоску
                             contentScale = ContentScale.Crop,
                             alignment = Alignment.Center
                         )
@@ -127,17 +129,17 @@ fun WikiImage(
                         .background(MaterialTheme.colorScheme.background),
                     contentAlignment = Alignment.Center
                 ) {
+                    // Заполняем весь контейнер и обрезаем лишнее — без белых полей
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(clampedAspect)
+                            .matchParentSize()
+                            .background(MaterialTheme.colorScheme.background)
                     ) {
                         Image(
                             painter = p,
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(),
-                            // Fit — без обрезки, аккуратно в пределах рамки
-                            contentScale = ContentScale.Fit,
+                            contentScale = ContentScale.Crop,
                             alignment = Alignment.Center
                         )
                     }
