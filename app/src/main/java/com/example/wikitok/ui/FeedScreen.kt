@@ -13,6 +13,7 @@ import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -33,15 +34,36 @@ import androidx.compose.ui.platform.LocalContext
 import kotlin.math.max
 import kotlinx.coroutines.launch
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+fun FeedTopBar(navController: androidx.navigation.NavController) {
+    TopAppBar(
+        title = { Text("WikiTok") },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            actionIconContentColor = MaterialTheme.colorScheme.onSurface
+        ),
+        actions = {
+            IconButton(onClick = { navController.navigate("settings") }) {
+                Icon(
+                    imageVector = Icons.Filled.Settings,
+                    contentDescription = "Настройки"
+                )
+            }
+        }
+    )
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ArticleCardPlaceholder(index: Int) {
+fun ArticleCardPlaceholder(index: Int, isLoading: Boolean) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "WikiTok — заглушка #${index + 1}",
+            text = if (isLoading) "Загружаем статьи…" else "Нет данных",
             style = MaterialTheme.typography.headlineMedium
         )
     }
@@ -58,6 +80,13 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
     val settings by settingsRepo.settingsFlow.collectAsState(initial = Settings())
 
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { max(items.size, 1) })
+
+    // Первичный автозапуск, если по какой-то причине init не успел
+    LaunchedEffect(items.size) {
+        if (items.isEmpty()) {
+            vm.onNeedMore()
+        }
+    }
 
     LaunchedEffect(pagerState.currentPage, items.size) {
         if (items.size >= 2 && pagerState.currentPage >= items.size - 2) {
@@ -84,21 +113,12 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
 
     val scope = rememberCoroutineScope()
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("WikiTok") },
-                actions = {
-                    IconButton(onClick = { navController.navigate("settings") }) {
-                        Icon(Icons.Default.Settings, contentDescription = "Настройки")
-                    }
-                }
-            )
-        }
+        topBar = { FeedTopBar(navController) }
     ) { _ ->
         VerticalPager(state = pagerState) { page ->
             val article = items.getOrNull(page)
             if (article == null) {
-                ArticleCardPlaceholder(page)
+                ArticleCardPlaceholder(page, isLoading = items.isEmpty())
             } else {
                 ArticleCard(
                     a = article,

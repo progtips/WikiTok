@@ -1,6 +1,5 @@
 package com.example.wikitok.ui
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,13 +17,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
-import coil.decode.SvgDecoder
-import androidx.compose.ui.platform.LocalContext
 import com.example.wikitok.data.Article
+import com.wikitok.ui.common.WikiImage
 
 @Composable
 fun ArticleCard(a: Article, onLike: () -> Unit, onDislike: () -> Unit, onOpen: () -> Unit) {
@@ -33,7 +27,12 @@ fun ArticleCard(a: Article, onLike: () -> Unit, onDislike: () -> Unit, onOpen: (
         .fillMaxSize()
         .clickable { onOpen() }
     ) {
-        a.imageUrl?.let { CoilImage(it) }
+        a.imageUrl?.let {
+            WikiImage(
+                url = it,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
         Column(
             Modifier
                 .align(Alignment.BottomStart)
@@ -52,25 +51,4 @@ fun ArticleCard(a: Article, onLike: () -> Unit, onDislike: () -> Unit, onOpen: (
         }
     }
 }
-
-@Composable
-private fun CoilImage(url: String) {
-    val painter = rememberAsyncImagePainter(
-        model = ImageRequest.Builder(LocalContext.current)
-            .data(url)
-            .addHeader("User-Agent", "WikiTok/1.0 (https://wikitok.app; dev@wikitok.app)")
-            .decoderFactory(SvgDecoder.Factory())
-            .crossfade(true)
-            .build()
-    )
-    Image(
-        painter = painter,
-        contentDescription = null,
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
-        contentScale = ContentScale.FillWidth
-    )
-}
-
 
