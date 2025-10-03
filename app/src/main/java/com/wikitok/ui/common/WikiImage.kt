@@ -19,6 +19,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.background
+import androidx.compose.material3.MaterialTheme
 import coil.compose.SubcomposeAsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
@@ -27,8 +29,8 @@ import coil.request.ImageRequest
 fun WikiImage(
     url: String,
     modifier: Modifier = Modifier,
-    minHeightDp: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp(160f),
-    panoramaHeightDp: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp(220f),
+    minHeightDp: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp(300f),
+    panoramaHeightDp: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp(300f),
 ) {
     val context = LocalContext.current
 
@@ -76,25 +78,46 @@ fun WikiImage(
                     modifier = modifier
                         .fillMaxWidth()
                         .height(finalHeight)
+                        .background(MaterialTheme.colorScheme.background),
+                    contentAlignment = Alignment.Center
                 ) {
                     Image(
                         painter = p,
                         contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .align(Alignment.Center),
                         contentScale = ContentScale.Crop,
                         alignment = Alignment.Center
                     )
                 }
             } else {
-                Image(
-                    painter = p,
-                    contentDescription = null,
+                val configuration = LocalConfiguration.current
+                val density = LocalDensity.current
+                val screenWidthDp = configuration.screenWidthDp.dp
+                val naturalHeightDp: Dp = with(density) {
+                    val screenWidthPx = screenWidthDp.toPx()
+                    (screenWidthPx / clampedAspect).toDp()
+                }
+                val targetHeight = if (naturalHeightDp < minHeightDp) minHeightDp else naturalHeightDp
+
+                Box(
                     modifier = modifier
                         .fillMaxWidth()
-                        .aspectRatio(clampedAspect)
-                        .heightIn(min = minHeightDp),
-                    contentScale = ContentScale.FillWidth
-                )
+                        .height(targetHeight)
+                        .background(MaterialTheme.colorScheme.background),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = p,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.Center),
+                        contentScale = ContentScale.FillWidth,
+                        alignment = Alignment.Center
+                    )
+                }
             }
         }
     )
