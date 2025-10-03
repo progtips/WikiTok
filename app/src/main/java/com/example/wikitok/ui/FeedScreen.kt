@@ -113,7 +113,6 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
 
     val scope = rememberCoroutineScope()
     Scaffold(
-        topBar = { FeedTopBar(navController) }
     ) { _ ->
         VerticalPager(state = pagerState) { page ->
             val article = items.getOrNull(page)
@@ -136,7 +135,8 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                             if (next != page) pagerState.animateScrollToPage(next)
                         }
                     },
-                    onOpen = { openArticle(context, article.url, settings) }
+                    onOpen = { openArticle(context, article.url, settings) },
+                    onOpenSettings = { navController.navigate("settings") }
                 )
             }
         }

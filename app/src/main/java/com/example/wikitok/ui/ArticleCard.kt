@@ -14,6 +14,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,7 +25,7 @@ import com.example.wikitok.data.Article
 import com.wikitok.ui.common.WikiImage
 
 @Composable
-fun ArticleCard(a: Article, onLike: () -> Unit, onDislike: () -> Unit, onOpen: () -> Unit) {
+fun ArticleCard(a: Article, onLike: () -> Unit, onDislike: () -> Unit, onOpen: () -> Unit, onOpenSettings: () -> Unit) {
     Box(Modifier
         .fillMaxSize()
         .clickable { onOpen() }
@@ -44,8 +47,9 @@ fun ArticleCard(a: Article, onLike: () -> Unit, onDislike: () -> Unit, onOpen: (
             Text(a.title, color = Color.White, style = MaterialTheme.typography.headlineSmall)
             if (!a.description.isNullOrBlank()) Text(a.description!!, color = Color.White)
             if (!a.extract.isNullOrBlank()) Text(a.extract!!, maxLines = 4, color = Color.White)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 TextButton(onClick = onDislike) { Text("Пропустить", color = Color.White) }
+                Icon(imageVector = Icons.Filled.Settings, contentDescription = "Настройки", tint = Color.White, modifier = Modifier.clickable { onOpenSettings() })
                 Button(onClick = onLike) { Text("Нравится") }
             }
         }
