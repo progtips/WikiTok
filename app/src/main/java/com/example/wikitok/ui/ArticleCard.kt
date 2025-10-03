@@ -25,17 +25,34 @@ import com.example.wikitok.data.Article
 import com.wikitok.ui.common.WikiImage
 
 @Composable
-fun ArticleCard(a: Article, onLike: () -> Unit, onDislike: () -> Unit, onOpen: () -> Unit, onOpenSettings: () -> Unit) {
-    Box(Modifier
-        .fillMaxSize()
-        .clickable { onOpen() }
+fun ArticleCard(
+    a: Article,
+    onLike: () -> Unit,
+    onDislike: () -> Unit,
+    onOpen: () -> Unit,
+    onOpenSettings: () -> Unit
+) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .clickable { onOpen() }
     ) {
-        a.imageUrl?.let {
-            WikiImage(
-                url = it,
-                modifier = Modifier.fillMaxWidth()
-            )
+        // Центрируем блок изображения по вертикали на странице
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            a.imageUrl?.let {
+                WikiImage(
+                    url = it,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center)
+                )
+            }
         }
+
+        // Нижняя панель с текстами и действиями — остаётся прижатой к низу
         Column(
             Modifier
                 .align(Alignment.BottomStart)
@@ -47,12 +64,20 @@ fun ArticleCard(a: Article, onLike: () -> Unit, onDislike: () -> Unit, onOpen: (
             Text(a.title, color = Color.White, style = MaterialTheme.typography.headlineSmall)
             if (!a.description.isNullOrBlank()) Text(a.description!!, color = Color.White)
             if (!a.extract.isNullOrBlank()) Text(a.extract!!, maxLines = 4, color = Color.White)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 TextButton(onClick = onDislike) { Text("Пропустить", color = Color.White) }
-                Icon(imageVector = Icons.Filled.Settings, contentDescription = "Настройки", tint = Color.White, modifier = Modifier.clickable { onOpenSettings() })
+                Icon(
+                    imageVector = Icons.Filled.Settings,
+                    contentDescription = "Настройки",
+                    tint = Color.White,
+                    modifier = Modifier.clickable { onOpenSettings() }
+                )
                 Button(onClick = onLike) { Text("Нравится") }
             }
         }
     }
 }
-
