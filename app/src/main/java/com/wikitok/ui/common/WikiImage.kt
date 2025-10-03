@@ -35,18 +35,22 @@ fun WikiImage(
 
     val request = ImageRequest.Builder(context)
         .data(url)
-        .crossfade(true)
+        .crossfade(false)
         .addHeader("User-Agent", "WikiTok/1.0 (contact: dev@example.com)")
         .addHeader("Referer", "https://wikipedia.org/")
         .build()
 
-    SubcomposeAsyncImage(
+    Box(
         modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.background),
-        imageLoader = imageLoader,
-        model = request,
-        contentDescription = null,
+        contentAlignment = Alignment.Center
+    ) {
+        SubcomposeAsyncImage(
+            modifier = Modifier.fillMaxWidth(),
+            imageLoader = imageLoader,
+            model = request,
+            contentDescription = null,
 
         // Плейсхолдеры: та же подложка, что и у экрана
         loading = {
@@ -74,7 +78,7 @@ fun WikiImage(
             val aspect = if (s != Size.Unspecified && s.height > 0f) s.width / s.height else 1f
 
             val isPanorama = aspect > 2.0f
-            val clampedAspect = aspect.coerceIn(0.6f, 1.8f)
+            val clampedAspect = aspect.coerceIn(0.4f, 2.0f)
 
             if (isPanorama) {
                 val configuration = LocalConfiguration.current
@@ -112,39 +116,23 @@ fun WikiImage(
                     }
                 }
             } else {
-                val configuration = LocalConfiguration.current
-                val density = LocalDensity.current
-                val screenWidthDp = configuration.screenWidthDp.dp
-                val naturalHeightDp: Dp = with(density) {
-                    val screenWidthPx = screenWidthDp.toPx()
-                    (screenWidthPx / clampedAspect).toDp()
-                }
-
-                val targetHeight = if (naturalHeightDp < minHeightDp) minHeightDp else naturalHeightDp
-
+                // Используем реальный аспект изображения для высоты контейнера — без фиксированных высот
                 Box(
                     modifier = modifier
                         .fillMaxWidth()
-                        .height(targetHeight)
+                        .aspectRatio(clampedAspect)
                         .background(MaterialTheme.colorScheme.background),
                     contentAlignment = Alignment.Center
                 ) {
-                    // Заполняем весь контейнер и обрезаем лишнее — без белых полей
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .background(MaterialTheme.colorScheme.background)
-                    ) {
-                        Image(
-                            painter = p,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop,
-                            alignment = Alignment.Center
-                        )
-                    }
+                    Image(
+                        painter = p,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                        alignment = Alignment.Center
+                    )
                 }
             }
         }
-    )
+    }
 }

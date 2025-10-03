@@ -32,46 +32,55 @@ fun ArticleCard(
     onOpen: () -> Unit,
     onOpenSettings: () -> Unit
 ) {
-    // Подложка карточки: временно ставим явную мадженту для диагностики
+    // Подложка карточки: возвращаем фон из темы
     Box(
         Modifier
             .fillMaxSize()
-            .background(Color(0xFFFF00FF))
+            .background(MaterialTheme.colorScheme.background)
             .clickable { onOpen() }
     ) {
-        // Центрирование по вертикали происходит внутри WikiImage (через внутреннюю рамку aspectRatio)
-        a.imageUrl?.let {
-            WikiImage(
-                url = it,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-
-        // Нижняя панель с полу-прозрачной плашкой — без изменений
-        Column(
-            Modifier
-                .align(Alignment.BottomStart)
-                .fillMaxWidth()
-                .background(Color.Black.copy(alpha = 0.4f))
-                .navigationBarsPadding()
-                .padding(16.dp)
-        ) {
-            Text(a.title, color = Color.White, style = MaterialTheme.typography.headlineSmall)
-            if (!a.description.isNullOrBlank()) Text(a.description!!, color = Color.White)
-            if (!a.extract.isNullOrBlank()) Text(a.extract!!, maxLines = 4, color = Color.White)
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+        Column(Modifier.fillMaxSize()) {
+            // Верхняя область под изображение: гарантированно окрашена в фон темы
+            Box(
+                Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.background),
+                contentAlignment = Alignment.Center
             ) {
-                TextButton(onClick = onDislike) { Text("Пропустить", color = Color.White) }
-                Icon(
-                    imageVector = Icons.Filled.Settings,
-                    contentDescription = "Настройки",
-                    tint = Color.White,
-                    modifier = Modifier.clickable { onOpenSettings() }
-                )
-                Button(onClick = onLike) { Text("Нравится") }
+                a.imageUrl?.let {
+                    WikiImage(
+                        url = it,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+
+            // Нижняя панель с полу-прозрачной плашкой — без изменений
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .background(Color.Black.copy(alpha = 0.4f))
+                    .navigationBarsPadding()
+                    .padding(16.dp)
+            ) {
+                Text(a.title, color = Color.White, style = MaterialTheme.typography.headlineSmall)
+                if (!a.description.isNullOrBlank()) Text(a.description!!, color = Color.White)
+                if (!a.extract.isNullOrBlank()) Text(a.extract!!, maxLines = 4, color = Color.White)
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = onDislike) { Text("Пропустить", color = Color.White) }
+                    Icon(
+                        imageVector = Icons.Filled.Settings,
+                        contentDescription = "Настройки",
+                        tint = Color.White,
+                        modifier = Modifier.clickable { onOpenSettings() }
+                    )
+                    Button(onClick = onLike) { Text("Нравится") }
+                }
             }
         }
     }
