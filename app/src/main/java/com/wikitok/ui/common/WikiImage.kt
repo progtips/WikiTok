@@ -134,5 +134,6 @@ fun WikiImage(
                 }
             }
         }
+        )
     }
 }

@@ -85,4 +85,6 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    // Truth для unit-тестов маппера
+    testImplementation("com.google.truth:truth:1.4.2")
 }

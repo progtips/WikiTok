@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <style name="Theme.WikiTok" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- критично: заливка окна -->
+<style name="Theme.WikiTok" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Гарантируем, что окно НЕ белое ещё до Compose -->
         <item name="android:windowBackground">@color/app_window_background_light</item>
-        <item name="windowBackground">@color/app_window_background_light</item>
+        
 
-        <!-- опционально, но полезно -->
+        <!-- Android 12+ Splash Screen: иначе фон сплэша будет белым -->
+        <!-- Splash фоновый цвет (Android 12+) -->
+        <item name="android:windowSplashScreenBackground">@color/app_window_background_light</item>
+
+        <!-- Edge-to-edge: делаем бары прозрачными, чтобы просвечивал наш фон окна -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+
+        <!-- Перестраховка от авто-«очернения» -->
         <item name="android:forceDarkAllowed">false</item>
     </style>
 </resources>
