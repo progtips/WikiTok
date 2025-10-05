@@ -97,11 +97,23 @@ fun AboutScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Box(Modifier.padding(20.dp)) {
-                    Image(
-                        painter = painterResource(id = R.mipmap.ic_launcher_round),
-                        contentDescription = null,
-                        modifier = Modifier.size(72.dp)
-                    )
+                    val iconPainter =
+                        runCatching { painterResource(id = R.drawable.ic_launcher_foreground) }.getOrNull()
+                            ?: runCatching { painterResource(id = R.mipmap.ic_launcher_round) }.getOrNull()
+
+                    if (iconPainter != null) {
+                        Image(
+                            painter = iconPainter,
+                            contentDescription = null,
+                            modifier = Modifier.size(72.dp)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Outlined.Star,
+                            contentDescription = null,
+                            modifier = Modifier.size(72.dp)
+                        )
+                    }
                 }
             }
 

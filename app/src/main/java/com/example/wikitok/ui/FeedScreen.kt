@@ -111,10 +111,25 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
     val settingsRepo = com.wikitok.settings.LocalSettingsRepository.current
     val settings by settingsRepo.settingsFlow.collectAsState(initial = com.wikitok.settings.Settings())
 
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 1 })
+    // Делаем 2 страницы: текущая и «следующая», чтобы пользователь мог свайпнуть вверх
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { if (current != null) 2 else 1 })
 
     // Первичная загрузка текущей статьи
     LaunchedEffect(Unit) { vm.loadNext() }
+
+    // Если пользователь доскроллил до второй страницы — подгружаем следующую один раз за визит на страницу 1
+    var requestedNext by remember { mutableStateOf(false) }
+    LaunchedEffect(pagerState.currentPage, loading) {
+        if (pagerState.currentPage == 1) {
+            if (!requestedNext && !loading) {
+                requestedNext = true
+                vm.loadNext()
+            }
+        } else {
+            // вернулись на первую страницу — можно разрешить следующую подгрузку при следующем свайпе
+            requestedNext = false
+        }
+    }
 
     val scope = rememberCoroutineScope()
 
@@ -135,7 +150,18 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                 .background(MaterialTheme.colorScheme.background) // <-- фон под пейджером
             ) { page ->
                 val article = current
-                if (article == null) {
+                if (page == 1) {
+                    // Заглушка «следующая карточка»
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.background),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(if (loading) "Загружаем следующую…" else "Проведите вниз для возврата")
+                    }
+                } else if (article == null) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -144,7 +170,7 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         val message = when {
-                            loading -> "Загружаем…"
+                            loading -> "Загружаем статьи"
                             error != null -> "Проблема с сетью"
                             else -> "Нет данных"
                         }
