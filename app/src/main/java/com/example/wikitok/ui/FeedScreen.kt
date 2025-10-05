@@ -108,6 +108,7 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
     val loading by vm.loading.collectAsState()
     val isLiked by vm.isLikedCurrent.collectAsState()
     val error by vm.error.collectAsState(null)
+    var progress by remember { mutableStateOf(0) }
     val settingsRepo = com.wikitok.settings.LocalSettingsRepository.current
     val settings by settingsRepo.settingsFlow.collectAsState(initial = com.wikitok.settings.Settings())
 
@@ -117,16 +118,34 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
     // Первичная загрузка текущей статьи
     LaunchedEffect(Unit) { vm.loadNext() }
 
+    // Процент загрузки на стартовом экране (индикативный)
+    LaunchedEffect(loading) {
+        if (loading) {
+            progress = 0
+            while (loading && progress < 95) {
+                kotlinx.coroutines.delay(120)
+                progress = (progress + 3).coerceAtMost(95)
+            }
+        } else if (current == null) {
+            // если загрузка закончилась, но данных нет
+            progress = 100
+        }
+    }
+
     // Если пользователь доскроллил до второй страницы — подгружаем следующую один раз за визит на страницу 1
     var requestedNext by remember { mutableStateOf(false) }
+    // Если стоим на странице 1 и не идёт загрузка — запросим следующую один раз
     LaunchedEffect(pagerState.currentPage, loading) {
-        if (pagerState.currentPage == 1) {
-            if (!requestedNext && !loading) {
-                requestedNext = true
-                vm.loadNext()
-            }
-        } else {
-            // вернулись на первую страницу — можно разрешить следующую подгрузку при следующем свайпе
+        if (pagerState.currentPage == 1 && !loading && !requestedNext) {
+            requestedNext = true
+            vm.loadNext()
+        }
+    }
+    // Когда текущая карточка сменилась после запроса next — мягко вернёмся на страницу 0
+    LaunchedEffect(current) {
+        if (requestedNext && pagerState.currentPage == 1) {
+            kotlinx.coroutines.delay(50)
+            pagerState.scrollToPage(0)
             requestedNext = false
         }
     }
@@ -159,7 +178,9 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(if (loading) "Загружаем следующую…" else "Проведите вниз для возврата")
+                        if (loading) {
+                            Text("Загружаем следующую…")
+                        }
                     }
                 } else if (article == null) {
                     Column(
@@ -169,14 +190,14 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        val message = when {
-                            loading -> "Загружаем статьи"
-                            error != null -> "Проблема с сетью"
-                            else -> "Нет данных"
+                        if (loading) {
+                            Text("Загружаем статьи")
+                            Spacer(Modifier.height(8.dp))
+                            Text("${progress}%")
+                        } else {
+                            val message = if (error != null) "Проблема с сетью" else "Нет данных"
+                            Text(message)
                         }
-                        Text(message)
-                        Spacer(Modifier.height(12.dp))
-                        Button(onClick = { vm.loadNext() }, enabled = !loading) { Text("Повторить") }
                     }
                 } else {
                     val uiArticle = com.example.wikitok.data.Article(
@@ -193,7 +214,10 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                         onLike = {
                             likePulse = true
                             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            // Запрашиваем следующую карточку и визуально переводим на страницу 1
+                            requestedNext = true
                             vm.onLike()
+                            scope.launch { pagerState.animateScrollToPage(1) }
                             scope.launch {
                                 kotlinx.coroutines.delay(180)
                                 likePulse = false

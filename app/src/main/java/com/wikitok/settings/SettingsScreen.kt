@@ -1,6 +1,11 @@
 package com.wikitok.settings
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.border
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -42,21 +47,43 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            SettingSwitch("Автопрокрутка карточек", state.autoScroll, vm::onAutoScrollChange)
-            SettingSwitch("Сохранять историю просмотров", state.saveHistory, vm::onSaveHistoryChange)
+            // Переключатель сохранения истории скрыт по требованию
 
-            OutlinedTextField(
-                value = state.cardBgHex,
-                onValueChange = { vm.onCardBgHexChange(it.take(7)) },
-                label = { Text("Фон карточек/изображений (#RRGGBB)") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+            Text("Фон карточек", style = MaterialTheme.typography.titleMedium)
+            // 5 цветов: серый (по умолчанию), чёрный, бледно-сиреневый, бледно-жёлтый, фиолетовый
+            val palette = listOf(
+                "#919191", // серый (по умолчанию)
+                "#000000", // чёрный
+                "#D8BFD8", // бледно-сиреневый (Thistle)
+                "#FFF9C4", // бледно-жёлтый (Yellow 100)
+                "#6650A3"  // фиолетовый (текущий фирменный)
             )
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                for (row in palette.chunked(4)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        row.forEach { hex ->
+                            val selected = hex.equals(state.cardBgHex, ignoreCase = true)
+                            val color = runCatching { androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(hex)) }
+                                .getOrDefault(MaterialTheme.colorScheme.surface)
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(color)
+                                    .border(
+                                        width = if (selected) 3.dp else 1.dp,
+                                        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                                        shape = CircleShape
+                                    )
+                                    .clickable { vm.onCardBgHexChange(hex) }
+                            )
+                        }
+                    }
+                }
+            }
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedButton(onClick = { vm.clearCache() }) { Text("Очистить кэш") }
                 OutlinedButton(onClick = onOpenAbout) { Text("О программе") }
-                OutlinedButton(onClick = onOpenLiked) { Text("Понравившиеся") }
             }
         }
     }

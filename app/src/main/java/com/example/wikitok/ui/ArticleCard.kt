@@ -104,7 +104,7 @@ fun ArticleCard(
                     Text(
                         secondaryText,
                         color = Color.White,
-                        maxLines = 5,
+                        maxLines = 7,
                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                     )
                 }

@@ -170,13 +170,7 @@ fun AboutScreen(
                         subtitle = "Как мы работаем с данными",
                         onClick = { openUrl("https://wikitok.app/privacy") }
                     )
-                    Divider()
-                    AboutItemRow(
-                        icon = { Icon(Icons.Outlined.Description, contentDescription = null) },
-                        title = "Открытые лицензии",
-                        subtitle = "Сторонние библиотеки и лицензии",
-                        onClick = { openUrl("https://wikitok.app/licenses") }
-                    )
+                    
                     Divider()
                     AboutItemRow(
                         icon = { Icon(Icons.Outlined.OpenInNew, contentDescription = null) },

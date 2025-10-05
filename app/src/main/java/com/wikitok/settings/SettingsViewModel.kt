@@ -29,7 +29,16 @@ class SettingsViewModel(private val repo: SettingsRepository) : ViewModel() {
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
 
-    fun onThemeChange(v: AppTheme) = viewModelScope.launch { repo.setTheme(v) }
+    fun onThemeChange(v: AppTheme) = viewModelScope.launch {
+        repo.setTheme(v)
+        // При смене темы настраиваем фон карточек по требованию
+        val hex = when (v) {
+            AppTheme.SYSTEM -> "#919191" // серый
+            AppTheme.LIGHT -> "#FFF9C4" // бледно-жёлтый
+            AppTheme.DARK  -> "#000000" // чёрный
+        }
+        repo.setCardBgHex(hex)
+    }
     fun onCustomTabsChange(v: Boolean) = viewModelScope.launch { repo.setCustomTabs(v) }
     fun onWikiLangChange(v: String) = viewModelScope.launch { repo.setWikiLang(v) }
     fun onAutoScrollChange(v: Boolean) = viewModelScope.launch { repo.setAutoScroll(v) }
