@@ -11,7 +11,8 @@ data class SettingsUiState(
     val wikiLang: String = "ru",
     val autoScroll: Boolean = false,
     val saveHistory: Boolean = true,
-    val cardBgHex: String = "#919191"
+    val cardBgHex: String = "#919191",
+    val explorationEpsilon: Float = 0.2f
 )
 
 class SettingsViewModel(private val repo: SettingsRepository) : ViewModel() {
@@ -23,7 +24,8 @@ class SettingsViewModel(private val repo: SettingsRepository) : ViewModel() {
                 wikiLang = it.wikiLang,
                 autoScroll = it.autoScroll,
                     saveHistory = it.saveHistory,
-                    cardBgHex = it.cardBgHex
+                    cardBgHex = it.cardBgHex,
+                    explorationEpsilon = it.explorationEpsilon
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
 
@@ -33,6 +35,7 @@ class SettingsViewModel(private val repo: SettingsRepository) : ViewModel() {
     fun onAutoScrollChange(v: Boolean) = viewModelScope.launch { repo.setAutoScroll(v) }
     fun onSaveHistoryChange(v: Boolean) = viewModelScope.launch { repo.setSaveHistory(v) }
     fun onCardBgHexChange(v: String) = viewModelScope.launch { repo.setCardBgHex(v) }
+    fun onExplorationEpsilonChange(v: Float) = viewModelScope.launch { repo.setExplorationEpsilon(v) }
     fun clearCache() = viewModelScope.launch { repo.clearCache() }
 }
 

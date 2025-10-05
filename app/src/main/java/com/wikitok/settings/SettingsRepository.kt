@@ -27,6 +27,7 @@ class SettingsRepository(private val context: Context) {
         val AUTO_SCROLL = booleanPreferencesKey("auto_scroll")
         val SAVE_HISTORY = booleanPreferencesKey("save_history")
         val CARD_BG_HEX = stringPreferencesKey("card_bg_hex")
+        val EPSILON = floatPreferencesKey("exploration_epsilon")
     }
 
     val settingsFlow: Flow<Settings> = context.dataStore.data.map { p ->
@@ -36,7 +37,8 @@ class SettingsRepository(private val context: Context) {
             wikiLang = p[Keys.WIKI_LANG] ?: "ru",
             autoScroll = p[Keys.AUTO_SCROLL] ?: false,
             saveHistory = p[Keys.SAVE_HISTORY] ?: true,
-            cardBgHex = p[Keys.CARD_BG_HEX] ?: "#919191"
+            cardBgHex = p[Keys.CARD_BG_HEX] ?: "#919191",
+            explorationEpsilon = p[Keys.EPSILON] ?: 0.2f
         )
     }
 
@@ -46,6 +48,7 @@ class SettingsRepository(private val context: Context) {
     suspend fun setAutoScroll(v: Boolean) = context.dataStore.edit { it[Keys.AUTO_SCROLL] = v }
     suspend fun setSaveHistory(v: Boolean) = context.dataStore.edit { it[Keys.SAVE_HISTORY] = v }
     suspend fun setCardBgHex(v: String) = context.dataStore.edit { it[Keys.CARD_BG_HEX] = v }
+    suspend fun setExplorationEpsilon(v: Float) = context.dataStore.edit { it[Keys.EPSILON] = v.coerceIn(0f, 1f) }
 
     suspend fun clearCache() { /* TODO: очистка кэша/БД при необходимости */ }
 }

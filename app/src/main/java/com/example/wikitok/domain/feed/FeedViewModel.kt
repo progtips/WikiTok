@@ -30,6 +30,9 @@ class FeedViewModel @Inject constructor(
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading
 
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val isLikedCurrent: StateFlow<Boolean> = _current
         .flatMapLatest { a ->
@@ -48,6 +51,9 @@ class FeedViewModel @Inject constructor(
                 feedBuffer.primeIfNeeded()
                 val next = feedBuffer.next()
                 _current.value = next
+                _error.value = null
+            } catch (t: Throwable) {
+                _error.value = t.message ?: "network_error"
             } finally {
                 _loading.value = false
             }

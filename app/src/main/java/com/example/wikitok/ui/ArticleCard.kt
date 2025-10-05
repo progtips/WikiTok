@@ -22,6 +22,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.example.wikitok.data.Article
 import com.wikitok.ui.common.WikiImage
 import androidx.compose.runtime.collectAsState
@@ -44,10 +46,20 @@ fun ArticleCard(
         android.graphics.Color.parseColor(settings.cardBgHex)
     }.getOrDefault(0xFF919191.toInt())
 
+    val talkBackText = buildString {
+        append(a.title)
+        val desc = a.description ?: a.extract
+        if (!desc.isNullOrBlank()) {
+            append(". ")
+            append(desc)
+        }
+    }
+
     Box(
         Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .semantics { contentDescription = talkBackText }
             .clickable { onOpen() }
     ) {
         Column(Modifier.fillMaxSize()) {

@@ -41,10 +41,12 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
 import androidx.compose.ui.draw.scale
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
@@ -110,6 +112,7 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
     val current by vm.current.collectAsState()
     val loading by vm.loading.collectAsState()
     val isLiked by vm.isLikedCurrent.collectAsState()
+    val error by vm.error.collectAsState(null)
     val settingsRepo = com.wikitok.settings.LocalSettingsRepository.current
     val settings by settingsRepo.settingsFlow.collectAsState(initial = com.wikitok.settings.Settings())
 
@@ -141,7 +144,22 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
             ) { page ->
                 val article = current
                 if (article == null) {
-                    ArticleCardPlaceholder(page, isLoading = loading)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.background),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        val message = when {
+                            loading -> "Загружаем…"
+                            error != null -> "Проблема с сетью"
+                            else -> "Нет данных"
+                        }
+                        Text(message)
+                        Spacer(Modifier.height(12.dp))
+                        Button(onClick = { vm.loadNext() }, enabled = !loading) { Text("Повторить") }
+                    }
                 } else {
                     val uiArticle = com.example.wikitok.data.Article(
                         id = article.title,
@@ -206,6 +224,7 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                 Button(
                     onClick = { vm.onSkip() },
                     modifier = Modifier.weight(1f),
+                    enabled = !loading,
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6650A3), contentColor = Color.White)
                 ) {
                     Icon(Icons.AutoMirrored.Filled.NavigateNext, contentDescription = "Пропустить")
@@ -234,6 +253,7 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                         }
                     },
                     modifier = Modifier.weight(1f),
+                    enabled = !loading,
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6650A3), contentColor = Color.White)
                 ) {
                     Icon(

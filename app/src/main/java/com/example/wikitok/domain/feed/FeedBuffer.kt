@@ -36,9 +36,15 @@ class FeedBuffer(
             primeIfNeeded()
             if (buffer.isEmpty()) return null
         }
-        val maxScore = buffer.maxOf { recommender.score(it) }
-        val candidates = buffer.filter { recommender.score(it) == maxScore }
-        val picked = if (candidates.isNotEmpty()) candidates.random() else buffer.random()
+        val epsilon = com.wikitok.settings.LocalSettingsRepository.current.settingsFlow
+            .replayCache.firstOrNull()?.explorationEpsilon ?: 0.2f
+        val picked = if (Math.random() < epsilon) {
+            buffer.random()
+        } else {
+            val maxScore = buffer.maxOf { recommender.score(it) }
+            val candidates = buffer.filter { recommender.score(it) == maxScore }
+            if (candidates.isNotEmpty()) candidates.random() else buffer.random()
+        }
         buffer.remove(picked)
         recentHistory?.let { kotlinx.coroutines.runBlocking { it.addShown(picked.pageId) } }
         if (com.example.wikitok.BuildConfig.DEBUG) {

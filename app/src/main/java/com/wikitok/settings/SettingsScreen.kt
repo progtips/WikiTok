@@ -46,6 +46,15 @@ fun SettingsScreen(
             SettingSwitch("Автопрокрутка карточек", state.autoScroll, vm::onAutoScrollChange)
             SettingSwitch("Сохранять историю просмотров", state.saveHistory, vm::onSaveHistoryChange)
 
+            Text("Эксплорация (ε)", style = MaterialTheme.typography.titleMedium)
+            Slider(
+                value = state.explorationEpsilon,
+                onValueChange = { vm.onExplorationEpsilonChange(it.coerceIn(0f,1f)) },
+                valueRange = 0f..1f,
+                steps = 9
+            )
+            Text("Текущее значение: ${state.explorationEpsilon}")
+
             OutlinedTextField(
                 value = state.cardBgHex,
                 onValueChange = { vm.onCardBgHexChange(it.take(7)) },
