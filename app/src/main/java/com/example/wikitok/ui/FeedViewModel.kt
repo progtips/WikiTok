@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.FlowPreview
 import android.content.Context
 
 class FeedViewModel(
@@ -30,6 +31,7 @@ class FeedViewModel(
 
     init { viewModelScope.launch { prime(5) } }
 
+    @OptIn(FlowPreview::class)
     fun attach(context: Context) {
         // restore
         viewModelScope.launch {
