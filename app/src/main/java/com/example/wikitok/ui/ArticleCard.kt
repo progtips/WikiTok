@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -56,11 +57,11 @@ fun ArticleCard(
                 }
             }
 
-            // Нижняя панель с полу-прозрачной плашкой — без изменений
+            // Нижняя панель с фиксированной плашкой под текст
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .background(Color.Black.copy(alpha = 0.4f))
+                    .background(Color(0xFF919191))
                     .navigationBarsPadding()
                     .padding(16.dp)
             ) {
@@ -72,14 +73,26 @@ fun ArticleCard(
                     horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TextButton(onClick = onDislike) { Text("Пропустить", color = Color.White) }
+                    Button(
+                        onClick = onDislike,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF6650A3),
+                            contentColor = Color.White
+                        )
+                    ) { Text("Пропустить") }
                     Icon(
                         imageVector = Icons.Filled.Settings,
                         contentDescription = "Настройки",
                         tint = Color.White,
                         modifier = Modifier.clickable { onOpenSettings() }
                     )
-                    Button(onClick = onLike) { Text("Нравится") }
+                    Button(
+                        onClick = onLike,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF6650A3),
+                            contentColor = Color.White
+                        )
+                    ) { Text("Нравится") }
                 }
             }
         }

@@ -13,21 +13,21 @@ import androidx.compose.ui.platform.LocalContext
 
 // OPAQUE палитры без альфы — не будут просвечивать «белый» подложки окна
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80,
-    background = Color(0xFFFF00FF),   // ядрёная маджента для проверки фона
-    surface    = Color(0xFF1E1E1E),   // было: Color.Black.copy(alpha = 0.6f)
+    primary = GreyPrimaryDark,
+    secondary = Grey40,
+    tertiary = Grey30,
+    background = Grey80,
+    surface    = Grey80,
     onBackground = Color(0xFFECECEC),
     onSurface    = Color(0xFFECECEC)
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40,
-    background = Color(0xFFFF00FF),   // ядрёная маджента для проверки фона
-    surface    = Color(0xFFFFFFFF),   // карточки/плашки
+    primary = GreyPrimaryLight,
+    secondary = Grey40,
+    tertiary = Grey30,
+    background = Grey10,
+    surface    = Color(0xFFFFFFFF),
     onBackground = Color(0xFF1C1B1F),
     onSurface    = Color(0xFF1C1B1F)
 )
