@@ -28,7 +28,8 @@ fun AppNavHost(navController: NavHostController, startDestination: String = "fee
             SettingsScreen(
                 vm = vm,
                 onBack = { navController.popBackStack() },
-                onOpenAbout = { navController.navigate("about") }
+                onOpenAbout = { navController.navigate("about") },
+                onOpenLiked = { navController.navigate("liked") }
             )
         }
         composable("about") {

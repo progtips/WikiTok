@@ -8,7 +8,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.automirrored.filled.NavigateNext
 import androidx.compose.foundation.layout.fillMaxSize
@@ -77,12 +76,7 @@ fun FeedTopBar(navController: androidx.navigation.NavController) {
                     contentDescription = "Настройки"
                 )
             }
-            IconButton(onClick = { navController.navigate("liked") }) {
-                Icon(
-                    imageVector = Icons.Filled.Favorite,
-                    contentDescription = "Понравившиеся"
-                )
-            }
+            // Кнопка перехода на "Понравившиеся" убрана из топ-бара; переход доступен через настройки
         }
     )
 }

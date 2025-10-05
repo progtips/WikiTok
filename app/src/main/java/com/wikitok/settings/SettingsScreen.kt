@@ -14,7 +14,8 @@ import androidx.compose.ui.unit.dp
 fun SettingsScreen(
     vm: SettingsViewModel,
     onBack: () -> Unit,
-    onOpenAbout: () -> Unit
+    onOpenAbout: () -> Unit,
+    onOpenLiked: () -> Unit
 ) {
     val state by vm.uiState.collectAsState()
 
@@ -55,7 +56,7 @@ fun SettingsScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedButton(onClick = { vm.clearCache() }) { Text("Очистить кэш") }
                 OutlinedButton(onClick = onOpenAbout) { Text("О программе") }
-                // Переход на экран интересов осуществляется из NavHost через навигацию
+                OutlinedButton(onClick = onOpenLiked) { Text("Понравившиеся") }
             }
         }
     }

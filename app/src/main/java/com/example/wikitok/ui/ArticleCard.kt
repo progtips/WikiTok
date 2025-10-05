@@ -85,11 +85,29 @@ fun ArticleCard(
                     .fillMaxWidth()
                     .background(Color(cardBgColor))
                     .navigationBarsPadding()
-                    .padding(16.dp)
+                    .padding(12.dp)
             ) {
-                Text(a.title, color = Color.White, style = MaterialTheme.typography.headlineSmall)
-                if (!a.description.isNullOrBlank()) Text(a.description!!, color = Color.White)
-                if (!a.extract.isNullOrBlank()) Text(a.extract!!, maxLines = 4, color = Color.White)
+                Text(
+                    a.title,
+                    color = Color.White,
+                    style = MaterialTheme.typography.headlineSmall,
+                    maxLines = 2,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
+
+                val secondaryText: String? = when {
+                    !a.description.isNullOrBlank() -> a.description
+                    !a.extract.isNullOrBlank() -> a.extract
+                    else -> null
+                }
+                if (!secondaryText.isNullOrBlank()) {
+                    Text(
+                        secondaryText,
+                        color = Color.White,
+                        maxLines = 3,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    )
+                }
                 Row(
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
