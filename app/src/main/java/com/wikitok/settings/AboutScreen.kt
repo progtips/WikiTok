@@ -24,7 +24,18 @@ fun AboutScreen(onBack: () -> Unit) {
         Column(Modifier.padding(pad).padding(16.dp)) {
             Text("WikiTok", style = MaterialTheme.typography.titleLarge)
             Text("Версия: " + BuildConfig.VERSION_NAME)
-            Text("Случайные статьи Википедии в формате карточек.")
+            Spacer(Modifier.height(8.dp))
+            Text("О приложении", style = MaterialTheme.typography.titleMedium)
+            Text("Лента карточек из Википедии с умной рекомендацией: учитываем категории, веса интересов и ε‑разнообразие.")
+            Spacer(Modifier.height(8.dp))
+            Text("Возможности", style = MaterialTheme.typography.titleMedium)
+            Text("• Лайк/пропуск")
+            Text("• Экран ‘Понравившиеся’ и открытие статьи в Custom Tabs")
+            Text("• Настройки: язык, фон карточек, мои интересы (ползунки)")
+            Text("• История недавних показов, чтобы не повторять статьи")
+            Spacer(Modifier.height(8.dp))
+            Text("Источник данных", style = MaterialTheme.typography.titleMedium)
+            Text("Wikipedia REST API. Приложение не связано с Wikimedia Foundation.")
         }
     }
 }

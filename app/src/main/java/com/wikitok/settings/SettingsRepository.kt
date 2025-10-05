@@ -34,7 +34,7 @@ class SettingsRepository(private val context: Context) {
     val settingsFlow: Flow<Settings> = context.dataStore.data.map { p ->
         Settings(
             theme = runCatching { AppTheme.valueOf(p[Keys.THEME] ?: "SYSTEM") }.getOrDefault(AppTheme.SYSTEM),
-            customTabs = p[Keys.CUSTOM_TABS] ?: true,
+            customTabs = true,
             wikiLang = p[Keys.WIKI_LANG] ?: "ru",
             autoScroll = p[Keys.AUTO_SCROLL] ?: false,
             saveHistory = p[Keys.SAVE_HISTORY] ?: true,

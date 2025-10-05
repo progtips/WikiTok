@@ -123,13 +123,10 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
 
     val scope = rememberCoroutineScope()
 
-    val snackbarHostState = remember { SnackbarHostState() }
-
     Scaffold(
         // Задаём фон всего экрана из темы
         containerColor = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onBackground,
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        contentColor = MaterialTheme.colorScheme.onBackground
     ) { _ ->
         var likePulse by remember { mutableStateOf(false) }
         val scale by animateFloatAsState(targetValue = if (likePulse || isLiked) 1.2f else 1.0f, label = "heartScale")
@@ -179,16 +176,6 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                             scope.launch {
                                 kotlinx.coroutines.delay(180)
                                 likePulse = false
-                                val res = snackbarHostState.showSnackbar(
-                                    message = "Добавлено в понравившиеся",
-                                    actionLabel = "Отменить",
-                                    withDismissAction = true,
-                                    duration = SnackbarDuration.Short
-                                )
-                                if (res == SnackbarResult.ActionPerformed) {
-                                    val id = current?.pageId ?: return@launch
-                                    vm.unlike(id)
-                                }
                             }
                         },
                         onDislike = { vm.onSkip() },
@@ -214,56 +201,7 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                 }
             }
 
-            // Нижняя панель с большими кнопками
-            Row(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Button(
-                    onClick = { vm.onSkip() },
-                    modifier = Modifier.weight(1f),
-                    enabled = !loading,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6650A3), contentColor = Color.White)
-                ) {
-                    Icon(Icons.AutoMirrored.Filled.NavigateNext, contentDescription = "Пропустить")
-                    Spacer(Modifier.width(8.dp))
-                    Text("Пропустить")
-                }
-                Spacer(Modifier.width(12.dp))
-                Button(
-                    onClick = {
-                        likePulse = true
-                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                        vm.onLike()
-                        scope.launch {
-                            kotlinx.coroutines.delay(180)
-                            likePulse = false
-                            val res = snackbarHostState.showSnackbar(
-                                message = "Добавлено в понравившиеся",
-                                actionLabel = "Отменить",
-                                withDismissAction = true,
-                                duration = SnackbarDuration.Short
-                            )
-                            if (res == SnackbarResult.ActionPerformed) {
-                                val id = current?.pageId ?: return@launch
-                                vm.unlike(id)
-                            }
-                        }
-                    },
-                    modifier = Modifier.weight(1f),
-                    enabled = !loading,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6650A3), contentColor = Color.White)
-                ) {
-                    Icon(
-                        imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                        contentDescription = if (isLiked) "Нравится (выбрано)" else "Нравится"
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text("Нравится")
-                }
-            }
+            // Нижняя панель кнопок убрана: используем существующие кнопки в карточке
         }
     }
 }

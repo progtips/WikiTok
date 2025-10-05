@@ -33,8 +33,6 @@ fun SettingsScreen(
             Text("Тема", style = MaterialTheme.typography.titleMedium)
             SegmentedButtonsTheme(selected = state.theme, onSelect = vm::onThemeChange)
 
-            SettingSwitch("Открывать в Custom Tabs", state.customTabs, vm::onCustomTabsChange, "Рекомендовано")
-
             OutlinedTextField(
                 value = state.wikiLang,
                 onValueChange = { vm.onWikiLangChange(it.take(5)) },
@@ -45,15 +43,6 @@ fun SettingsScreen(
 
             SettingSwitch("Автопрокрутка карточек", state.autoScroll, vm::onAutoScrollChange)
             SettingSwitch("Сохранять историю просмотров", state.saveHistory, vm::onSaveHistoryChange)
-
-            Text("Эксплорация (ε)", style = MaterialTheme.typography.titleMedium)
-            Slider(
-                value = state.explorationEpsilon,
-                onValueChange = { vm.onExplorationEpsilonChange(it.coerceIn(0f,1f)) },
-                valueRange = 0f..1f,
-                steps = 9
-            )
-            Text("Текущее значение: ${state.explorationEpsilon}")
 
             OutlinedTextField(
                 value = state.cardBgHex,
