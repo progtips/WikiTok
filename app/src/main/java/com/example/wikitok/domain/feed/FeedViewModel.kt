@@ -70,4 +70,10 @@ class FeedViewModel @Inject constructor(
             loadNext()
         }
     }
+
+    fun unlike(pageId: Long) {
+        viewModelScope.launch {
+            likesRepository.unlike(pageId)
+        }
+    }
 }
