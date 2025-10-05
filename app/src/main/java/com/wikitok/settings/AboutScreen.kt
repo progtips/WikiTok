@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -218,31 +219,8 @@ private fun AboutItemRow(
             .defaultMinSize(minHeight = 56.dp)
             .padding(horizontal = 4.dp)
             .let { base -> base }
-            .clickableWithRipple(onClick)
+            .clickable(onClick = onClick)
     )
 }
 
-@Composable
-private fun Modifier.clickableWithRipple(onClick: () -> Unit): Modifier = this.then(
-    Modifier
-        .padding(vertical = 2.dp)
-        .let { base ->
-            @Suppress("INLINE_FROM_HIGHER_PLATFORM")
-            androidx.compose.foundation.clickable(
-                onClick = onClick,
-                indication = rememberRipple(),
-                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-            )(base)
-        }
-)
-
-@Composable
-private fun rememberRipple() = androidx.compose.material.ripple.rememberRipple()
-
-@Preview(showBackground = true)
-@Composable
-private fun AboutScreenPreview() {
-    MaterialTheme(colorScheme = lightColorScheme()) {
-        AboutScreen(onBack = {})
-    }
-}
+// Превью и устаревший ripple удалены

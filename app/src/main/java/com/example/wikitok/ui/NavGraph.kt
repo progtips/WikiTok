@@ -14,7 +14,7 @@ import com.wikitok.settings.SettingsScreen
 import com.wikitok.settings.SettingsVmFactory
 import com.wikitok.settings.SettingsViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.wikitok.settings.AboutScreen
+import com.example.wikitok.ui.about.AboutScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController, startDestination: String = "feed") {
