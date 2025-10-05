@@ -57,6 +57,9 @@ class FeedViewModel @Inject constructor(
     fun onLike() {
         val a = _current.value ?: return
         viewModelScope.launch {
+            if (com.example.wikitok.BuildConfig.DEBUG) {
+                android.util.Log.d("Feed", "like pageId=" + a.pageId + ", cats=" + a.categories)
+            }
             likesRepository.like(a)
             preferencesStore.bumpPositive(a.categories)
             loadNext()
@@ -66,6 +69,9 @@ class FeedViewModel @Inject constructor(
     fun onSkip() {
         val a = _current.value ?: return
         viewModelScope.launch {
+            if (com.example.wikitok.BuildConfig.DEBUG) {
+                android.util.Log.d("Feed", "skip pageId=" + a.pageId + ", cats=" + a.categories)
+            }
             preferencesStore.bumpNegative(a.categories)
             loadNext()
         }

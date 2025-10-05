@@ -14,6 +14,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import com.example.wikitok.domain.history.IRecentHistory
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -32,8 +33,8 @@ object FeedModule {
 
     @Provides
     @Singleton
-    fun provideFeedBuffer(source: ArticlesSource, recommender: IRecommender): IFeedBuffer =
-        FeedBuffer(source, recommender)
+    fun provideFeedBuffer(source: ArticlesSource, recommender: IRecommender, recent: IRecentHistory): IFeedBuffer =
+        FeedBuffer(source, recommender, recentHistory = recent)
 }
 
 
