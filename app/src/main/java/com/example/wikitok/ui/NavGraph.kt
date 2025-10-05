@@ -37,6 +37,9 @@ fun AppNavHost(navController: NavHostController, startDestination: String = "fee
         composable("liked") {
             LikedScreen(onBack = { navController.popBackStack() })
         }
+        composable("interests") {
+            InterestsScreen(onBack = { navController.popBackStack() })
+        }
         composable(
             route = "webview?url={url}",
             arguments = listOf(navArgument("url") { type = NavType.StringType })

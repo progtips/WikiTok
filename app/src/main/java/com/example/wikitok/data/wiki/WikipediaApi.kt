@@ -16,6 +16,14 @@ interface WikipediaApi {
         @Path("title") title: String,
         @Header("Accept-Language") lang: String = "ru"
     ): RelatedResponse
+
+    // Поиск по категории — REST API Википедии напрямую категорий не даёт в том же эндпоинте,
+    // поэтому здесь предполагается существование бэкенда/заглушки. Для graceful fallback используем related.
+    @GET("page/random/summary")
+    suspend fun fetchByCategory(
+        @Header("X-WikiTok-Category") category: String,
+        @Header("Accept-Language") lang: String = "ru"
+    ): WikiSummaryDto
 }
 
 @Serializable

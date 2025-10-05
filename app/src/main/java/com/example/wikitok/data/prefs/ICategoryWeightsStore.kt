@@ -7,4 +7,6 @@ interface ICategoryWeightsStore {
     suspend fun bumpNegative(categories: List<String>, delta: Float = -0.1f)
     fun observeWeights(): Flow<Map<String, Float>>
     suspend fun getTopCategories(limit: Int = 10): List<String>
+    suspend fun setWeight(category: String, value: Float)
+    suspend fun resetAll()
 }

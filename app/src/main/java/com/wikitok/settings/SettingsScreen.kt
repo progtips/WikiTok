@@ -66,6 +66,7 @@ fun SettingsScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedButton(onClick = { vm.clearCache() }) { Text("Очистить кэш") }
                 OutlinedButton(onClick = onOpenAbout) { Text("О программе") }
+                // Переход на экран интересов осуществляется из NavHost через навигацию
             }
         }
     }

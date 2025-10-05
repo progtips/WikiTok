@@ -16,7 +16,8 @@ data class Settings(
     val wikiLang: String = "ru",
     val autoScroll: Boolean = false,
     val saveHistory: Boolean = true,
-    val cardBgHex: String = "#919191"
+    val cardBgHex: String = "#919191",
+    val explorationEpsilon: Float = 0.2f
 )
 
 class SettingsRepository(private val context: Context) {

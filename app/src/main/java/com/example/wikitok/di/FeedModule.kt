@@ -7,7 +7,6 @@ import com.example.wikitok.domain.feed.IFeedBuffer
 import com.example.wikitok.domain.feed.ApiArticlesSource
 import com.example.wikitok.domain.recommend.IRecommender
 import com.example.wikitok.domain.recommend.Recommender
-import com.example.wikitok.data.wiki.WikipediaApi
 import com.example.wikitok.data.wiki.wikipediaApi
 import dagger.Module
 import dagger.Provides
@@ -22,7 +21,7 @@ object FeedModule {
 
     @Provides
     @Singleton
-    fun provideArticlesSource(): ArticlesSource = ApiArticlesSource(wikipediaApi)
+    fun provideArticlesSource(store: ICategoryWeightsStore): ArticlesSource = ApiArticlesSource(wikipediaApi, store)
 
     @Provides
     fun provideRecommender(store: ICategoryWeightsStore): IRecommender =
