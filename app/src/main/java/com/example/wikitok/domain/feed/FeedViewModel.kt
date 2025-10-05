@@ -7,7 +7,6 @@ import com.example.wikitok.data.prefs.ICategoryWeightsStore
 import com.example.wikitok.domain.Article
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -16,6 +15,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 @HiltViewModel
 class FeedViewModel @Inject constructor(
@@ -27,8 +28,11 @@ class FeedViewModel @Inject constructor(
     private val _current = MutableStateFlow<Article?>(null)
     val current: StateFlow<Article?> = _current
 
-    private val _loading = MutableStateFlow(false)
-    val loading: StateFlow<Boolean> = _loading
+    private val _isInitialLoading = MutableStateFlow(true)
+    val isInitialLoading: StateFlow<Boolean> = _isInitialLoading
+
+    private val _isFetchingNext = MutableStateFlow(false)
+    val isFetchingNext: StateFlow<Boolean> = _isFetchingNext
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
@@ -41,22 +45,48 @@ class FeedViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
-    private var loadJob: Job? = null
+    private val loadMutex = Mutex()
+
+    init {
+        viewModelScope.launch { loadNextInternal() }
+    }
 
     fun loadNext() {
-        loadJob?.cancel()
-        loadJob = viewModelScope.launch {
-            _loading.value = true
-            try {
-                feedBuffer.primeIfNeeded()
-                val next = feedBuffer.next()
-                _current.value = next
-                _error.value = null
-            } catch (t: Throwable) {
-                _error.value = t.message ?: "network_error"
-            } finally {
-                _loading.value = false
+        viewModelScope.launch { loadNextInternal() }
+    }
+
+    private suspend fun loadNextInternal() {
+        // 1) Пинаем подкачку (быстро возвращается)
+        runCatching { feedBuffer.primeIfNeeded() }
+
+        val firstLoad = _current.value == null
+        if (firstLoad) _isInitialLoading.value = true else _isFetchingNext.value = true
+
+        try {
+            // 2) Только pop очереди под мьютексом (быстро). Пробуем два раза, избегая повтора того же id
+            val next = loadMutex.withLock {
+                val prevId = _current.value?.pageId
+                val n1 = runCatching { feedBuffer.next() }.getOrNull()
+                if (n1 != null && n1.pageId != prevId) n1 else runCatching { feedBuffer.next() }.getOrNull()
             }
+
+            if (next == null) {
+                _error.value = "empty_feed"
+                // Попросим буфер ещё раз разогнаться в фоне
+                runCatching { feedBuffer.primeIfNeeded() }
+                return
+            }
+
+            _current.value = next
+            _error.value = null
+            if (com.example.wikitok.BuildConfig.DEBUG) {
+                android.util.Log.d("Feed", "show pageId=" + next.pageId)
+            }
+        } catch (t: Throwable) {
+            _error.value = t.message ?: "network_error"
+        } finally {
+            _isFetchingNext.value = false
+            _isInitialLoading.value = false
         }
     }
 
@@ -68,7 +98,7 @@ class FeedViewModel @Inject constructor(
             }
             likesRepository.like(a)
             preferencesStore.bumpPositive(a.categories)
-            loadNext()
+            loadNextInternal()
         }
     }
 
@@ -79,13 +109,11 @@ class FeedViewModel @Inject constructor(
                 android.util.Log.d("Feed", "skip pageId=" + a.pageId + ", cats=" + a.categories)
             }
             preferencesStore.bumpNegative(a.categories)
-            loadNext()
+            loadNextInternal()
         }
     }
 
     fun unlike(pageId: Long) {
-        viewModelScope.launch {
-            likesRepository.unlike(pageId)
-        }
+        viewModelScope.launch { likesRepository.unlike(pageId) }
     }
 }

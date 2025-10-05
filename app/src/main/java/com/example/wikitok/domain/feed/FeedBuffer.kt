@@ -1,68 +1,100 @@
 package com.example.wikitok.domain.feed
 
 import com.example.wikitok.domain.Article
-import com.example.wikitok.domain.recommend.IRecommender
-import com.example.wikitok.domain.history.IRecentHistory
+import java.util.ArrayDeque
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
+/**
+ * Источник данных для подкачки. Реализуйте через вашу сеть/репозиторий.
+ */
 interface ArticlesSource {
-    suspend fun fetchBatch(n: Int): List<Article>
+    suspend fun fetchBatch(limit: Int): List<Article>
 }
 
 class FeedBuffer(
+    private val scope: CoroutineScope,
     private val source: ArticlesSource,
-    private val recommender: IRecommender,
-    private val capacity: Int = 10,
-    private val recentHistory: IRecentHistory? = null
+    private val prefetchSize: Int = 6,
+    private val fetchBatchSize: Int = 6,
 ) : IFeedBuffer {
+
+    private val queue = ArrayDeque<Article>()
+    private val seenIds = LinkedHashSet<Long>()
     private val mutex = Mutex()
-    private val buffer = ArrayList<Article>()
-    private val seenIds = HashSet<Long>()
-    private var hasPrimed: Boolean = false
 
-    override suspend fun primeIfNeeded() = mutex.withLock {
-        if (buffer.size < capacity / 2) {
-            val need = capacity - buffer.size
+    @Volatile private var isPriming = false
+    private var primeJob: Job? = null
 
-            // Быстрый путь на старте: попытаться взять 1 статью максимально быстро
-            if (!hasPrimed && buffer.isEmpty()) {
-                runCatching { source.fetchBatch(1) }.getOrNull()?.forEach { a ->
-                    val skipRecent = recentHistory?.wasRecentlyShown(a.pageId) == true
-                    if (!skipRecent && seenIds.add(a.pageId) && buffer.size < capacity) buffer += a
+    override suspend fun primeIfNeeded() {
+        if (isPriming) return
+        val needPrime = mutex.withLock { queue.size < prefetchSize }
+        if (!needPrime) return
+
+        isPriming = true
+        primeJob?.cancel()
+        primeJob = scope.launch(Dispatchers.IO) {
+            try {
+                var attempts = 0
+                while (true) {
+                    val hasEnough = mutex.withLock { queue.size >= prefetchSize }
+                    if (hasEnough) break
+
+                    val batch = runCatching { source.fetchBatch(fetchBatchSize) }.getOrElse { e ->
+                        if (com.example.wikitok.BuildConfig.DEBUG) {
+                            android.util.Log.w("FeedBuffer", "fetch failed: ${e.message}")
+                        }
+                        attempts++
+                        delay((500L * attempts).coerceAtMost(3_000L))
+                        emptyList()
+                    }
+
+                    if (batch.isEmpty()) {
+                        delay(300L)
+                        continue
+                    }
+
+                    mutex.withLock {
+                        for (a in batch) {
+                            if (a.pageId <= 0) continue
+                            if (seenIds.add(a.pageId)) {
+                                queue.addLast(a)
+                                if (seenIds.size > 2000) {
+                                    val iter = seenIds.iterator()
+                                    repeat(500) { if (iter.hasNext()) { iter.next(); iter.remove() } }
+                                }
+                            }
+                        }
+                    }
+
+                    if (com.example.wikitok.BuildConfig.DEBUG) {
+                        val q = mutex.withLock { queue.size }
+                        android.util.Log.d("FeedBuffer", "prime: ready=${q}")
+                    }
                 }
+            } finally {
+                isPriming = false
             }
-
-            // Основная догрузка (умеренная на старте, больше после)
-            val batchSize = if (!hasPrimed) need else (need * 2)
-            val batch = runCatching { source.fetchBatch(batchSize) }.getOrDefault(emptyList())
-            for (a in batch) {
-                val skipRecent = recentHistory?.wasRecentlyShown(a.pageId) == true
-                if (!skipRecent && seenIds.add(a.pageId) && buffer.size < capacity) buffer += a
-            }
-            hasPrimed = true
         }
     }
 
-    override suspend fun next(): Article? = mutex.withLock {
-        if (buffer.isEmpty()) {
-            primeIfNeeded()
-            if (buffer.isEmpty()) return null
+    override suspend fun next(): Article? {
+        val item = mutex.withLock { if (queue.isEmpty()) null else queue.removeFirst() }
+        if (item != null && com.example.wikitok.BuildConfig.DEBUG) {
+            android.util.Log.d("FeedBuffer", "next(): pop pageId=${item.pageId}")
         }
-        val epsilon = 0.2f // epsilon берём из VM/DI при необходимости; здесь по умолчанию
-        val picked = if (Math.random() < epsilon) {
-            buffer.random()
-        } else {
-            val maxScoreLocal = buffer.maxOf { recommender.score(it) }
-            val candidates = buffer.filter { recommender.score(it) == maxScoreLocal }
-            if (candidates.isNotEmpty()) candidates.random() else buffer.random()
+
+        if (!isPriming) {
+            val need = mutex.withLock { queue.size < prefetchSize }
+            if (need) {
+                scope.launch { primeIfNeeded() }
+            }
         }
-        buffer.remove(picked)
-        recentHistory?.let { kotlinx.coroutines.runBlocking { it.addShown(picked.pageId) } }
-        if (com.example.wikitok.BuildConfig.DEBUG) {
-            val s = recommender.score(picked)
-            android.util.Log.d("Feed", "next pageId=" + picked.pageId + ", score=" + s)
-        }
-        picked
+        return item
     }
 }

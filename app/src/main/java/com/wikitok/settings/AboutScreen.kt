@@ -144,7 +144,7 @@ fun AboutScreen(
 
             // Расширенное описание — обрезано по требованию до фразы «в один тап.»
             Text(
-                text = "Листайте, чтобы узнавать новое каждый день: факты, события, людей и явления из разных областей знаний. Отмечайте понравившиеся статьи, и приложение будет лучше подстраивать ленту под ваши интересы. Переходите к полным статьям в браузере в один тап.",
+                text = "Листайте, чтобы узнавать новое каждый день: факты, события, людей и явления из разных областей знаний. Отмечайте понравившиеся статьи, и приложение будет лучше подстраивать ленту под ваши интересы. Переходите к полным статьям в Википедии в один тап.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -152,49 +152,7 @@ fun AboutScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Карточки со ссылками/действиями
-            ElevatedCard(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp)
-            ) {
-                Column(Modifier.fillMaxWidth()) {
-                    AboutItemRow(
-                        icon = { Icon(Icons.Outlined.Star, contentDescription = null) },
-                        title = "Оценить приложение",
-                        subtitle = "Откроется страница магазина",
-                        onClick = { openUrl("https://play.google.com/store/apps/details?id=${BuildConfig.APPLICATION_ID}") }
-                    )
-                    Divider()
-                    AboutItemRow(
-                        icon = { Icon(Icons.Outlined.PrivacyTip, contentDescription = null) },
-                        title = "Политика конфиденциальности",
-                        subtitle = "Как мы работаем с данными",
-                        onClick = { openUrl("https://wikitok.app/privacy") }
-                    )
-                    
-                    Divider()
-                    AboutItemRow(
-                        icon = { Icon(Icons.Outlined.OpenInNew, contentDescription = null) },
-                        title = "Источник данных: Wikipedia.org",
-                        subtitle = "Перейти на сайт Википедии",
-                        onClick = { openUrl("https://wikipedia.org") }
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Контакты
-            Text(
-                text = "Нужна помощь или есть идея?",
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            OutlinedButton(onClick = sendEmail, shape = RoundedCornerShape(14.dp)) {
-                Text("Написать в поддержку")
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
+            
 
             // Футер
             Text(
