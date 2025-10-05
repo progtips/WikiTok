@@ -63,24 +63,27 @@ class FeedViewModel @Inject constructor(
         if (firstLoad) _isInitialLoading.value = true else _isFetchingNext.value = true
 
         try {
-            // 2) Только pop очереди под мьютексом (быстро). Пробуем два раза, избегая повтора того же id
-            val next = loadMutex.withLock {
-                val prevId = _current.value?.pageId
-                val n1 = runCatching { feedBuffer.next() }.getOrNull()
-                if (n1 != null && n1.pageId != prevId) n1 else runCatching { feedBuffer.next() }.getOrNull()
+            var next: Article? = null
+            repeat(3) { attempt ->
+                val candidate = runCatching { feedBuffer.next() }.getOrNull()
+                if (candidate != null && candidate.pageId != _current.value?.pageId) {
+                    next = candidate
+                    return@repeat
+                }
+                // небольшая задержка, чтобы подкачка успела
+                kotlinx.coroutines.delay(180L + attempt * 120L)
+                runCatching { feedBuffer.primeIfNeeded() }
             }
 
             if (next == null) {
                 _error.value = "empty_feed"
-                // Попросим буфер ещё раз разогнаться в фоне
-                runCatching { feedBuffer.primeIfNeeded() }
                 return
             }
 
             _current.value = next
             _error.value = null
             if (com.example.wikitok.BuildConfig.DEBUG) {
-                android.util.Log.d("Feed", "show pageId=" + next.pageId)
+                android.util.Log.d("Feed", "show pageId=" + next?.pageId)
             }
         } catch (t: Throwable) {
             _error.value = t.message ?: "network_error"

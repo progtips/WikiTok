@@ -121,6 +121,7 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                 }
                 current != null -> {
                     val article = current!!
+                    val disableActions = isFetchingNext || isInitialLoading
                     val uiArticle = com.example.wikitok.data.Article(
                         id = article.title,
                         title = article.title,
@@ -131,8 +132,8 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                     )
                     ArticleCard(
                         a = uiArticle,
-                        onLike = { if (!isFetchingNext) viewModel.onLike() },
-                        onDislike = { if (!isFetchingNext) viewModel.onSkip() },
+                        onLike = { if (!disableActions) viewModel.onLike() },
+                        onDislike = { if (!disableActions) viewModel.onSkip() },
                         onOpen = {
                             val encoded = try {
                                 java.net.URLEncoder.encode(article.title, Charsets.UTF_8.name()).replace('+', '_')

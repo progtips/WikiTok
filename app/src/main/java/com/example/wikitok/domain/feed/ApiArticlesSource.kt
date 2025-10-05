@@ -35,6 +35,10 @@ class ApiArticlesSource(private val api: WikipediaApi, private val store: ICateg
                 // fallback: ничего не добавляем, просто продолжаем попытки
             }
         }
+        if (com.example.wikitok.BuildConfig.DEBUG) {
+            val ids = result.take(3).joinToString { it.pageId.toString() }
+            android.util.Log.d("ArticlesSource", "fetchBatch: size=${result.size}, ids=${ids}")
+        }
         return result
     }
 }
