@@ -22,6 +22,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import com.wikitok.settings.LocalSettingsRepository
 
 @Composable
 fun WikiImage(
@@ -40,10 +43,14 @@ fun WikiImage(
         .addHeader("Referer", "https://wikipedia.org/")
         .build()
 
+    val settingsRepo = LocalSettingsRepository.current
+    val settings by settingsRepo.settingsFlow.collectAsState(initial = com.wikitok.settings.Settings())
+    val cardBgColor = runCatching { android.graphics.Color.parseColor(settings.cardBgHex) }.getOrDefault(0xFF919191.toInt())
+
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background),
+            .background(androidx.compose.ui.graphics.Color(cardBgColor)),
         contentAlignment = Alignment.Center
     ) {
         SubcomposeAsyncImage(
@@ -58,7 +65,7 @@ fun WikiImage(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = minHeightDp)
-                    .background(MaterialTheme.colorScheme.background),
+                    .background(androidx.compose.ui.graphics.Color(cardBgColor)),
                 contentAlignment = Alignment.Center
             ) {}
         },
@@ -67,7 +74,7 @@ fun WikiImage(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = minHeightDp)
-                    .background(MaterialTheme.colorScheme.background),
+                    .background(androidx.compose.ui.graphics.Color(cardBgColor)),
                 contentAlignment = Alignment.Center
             ) {}
         },
@@ -97,14 +104,14 @@ fun WikiImage(
                     modifier = modifier
                         .fillMaxWidth()
                         .height(finalHeight)
-                        .background(MaterialTheme.colorScheme.background),
+                        .background(androidx.compose.ui.graphics.Color(cardBgColor)),
                     contentAlignment = Alignment.Center
                 ) {
                     // Заполняем весь контейнер, чтобы не оставалось просветов
                     Box(
                         modifier = Modifier
                             .matchParentSize()
-                            .background(MaterialTheme.colorScheme.background)
+                            .background(androidx.compose.ui.graphics.Color(cardBgColor))
                     ) {
                         Image(
                             painter = p,
@@ -121,7 +128,7 @@ fun WikiImage(
                     modifier = modifier
                         .fillMaxWidth()
                         .aspectRatio(clampedAspect)
-                        .background(MaterialTheme.colorScheme.background),
+                        .background(androidx.compose.ui.graphics.Color(cardBgColor)),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(

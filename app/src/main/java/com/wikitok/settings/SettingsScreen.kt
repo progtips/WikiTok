@@ -46,6 +46,14 @@ fun SettingsScreen(
             SettingSwitch("Автопрокрутка карточек", state.autoScroll, vm::onAutoScrollChange)
             SettingSwitch("Сохранять историю просмотров", state.saveHistory, vm::onSaveHistoryChange)
 
+            OutlinedTextField(
+                value = state.cardBgHex,
+                onValueChange = { vm.onCardBgHexChange(it.take(7)) },
+                label = { Text("Фон карточек/изображений (#RRGGBB)") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedButton(onClick = { vm.clearCache() }) { Text("Очистить кэш") }
                 OutlinedButton(onClick = onOpenAbout) { Text("О программе") }

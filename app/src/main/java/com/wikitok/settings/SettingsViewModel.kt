@@ -10,7 +10,8 @@ data class SettingsUiState(
     val customTabs: Boolean = true,
     val wikiLang: String = "ru",
     val autoScroll: Boolean = false,
-    val saveHistory: Boolean = true
+    val saveHistory: Boolean = true,
+    val cardBgHex: String = "#919191"
 )
 
 class SettingsViewModel(private val repo: SettingsRepository) : ViewModel() {
@@ -21,7 +22,8 @@ class SettingsViewModel(private val repo: SettingsRepository) : ViewModel() {
                 customTabs = it.customTabs,
                 wikiLang = it.wikiLang,
                 autoScroll = it.autoScroll,
-                saveHistory = it.saveHistory
+                    saveHistory = it.saveHistory,
+                    cardBgHex = it.cardBgHex
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
 
@@ -30,6 +32,7 @@ class SettingsViewModel(private val repo: SettingsRepository) : ViewModel() {
     fun onWikiLangChange(v: String) = viewModelScope.launch { repo.setWikiLang(v) }
     fun onAutoScrollChange(v: Boolean) = viewModelScope.launch { repo.setAutoScroll(v) }
     fun onSaveHistoryChange(v: Boolean) = viewModelScope.launch { repo.setSaveHistory(v) }
+    fun onCardBgHexChange(v: String) = viewModelScope.launch { repo.setCardBgHex(v) }
     fun clearCache() = viewModelScope.launch { repo.clearCache() }
 }
 

@@ -24,6 +24,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.wikitok.data.Article
 import com.wikitok.ui.common.WikiImage
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import com.wikitok.settings.LocalSettingsRepository
 
 @Composable
 fun ArticleCard(
@@ -34,6 +37,13 @@ fun ArticleCard(
     onOpenSettings: () -> Unit
 ) {
     // Подложка карточки: возвращаем фон из темы
+    val settingsRepo = LocalSettingsRepository.current
+    val settings by settingsRepo.settingsFlow.collectAsState(initial = com.wikitok.settings.Settings())
+
+    val cardBgColor = runCatching {
+        android.graphics.Color.parseColor(settings.cardBgHex)
+    }.getOrDefault(0xFF919191.toInt())
+
     Box(
         Modifier
             .fillMaxSize()
@@ -41,12 +51,12 @@ fun ArticleCard(
             .clickable { onOpen() }
     ) {
         Column(Modifier.fillMaxSize()) {
-            // Верхняя область под изображение: гарантированно окрашена в фон темы
+            // Верхняя область под изображение: фон как у плашки текста (#919191)
             Box(
                 Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.background),
+                    .background(Color(cardBgColor)),
                 contentAlignment = Alignment.Center
             ) {
                 a.imageUrl?.let {
@@ -61,7 +71,7 @@ fun ArticleCard(
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF919191))
+                    .background(Color(cardBgColor))
                     .navigationBarsPadding()
                     .padding(16.dp)
             ) {
