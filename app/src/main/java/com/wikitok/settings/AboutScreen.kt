@@ -98,7 +98,9 @@ fun AboutScreen(
             ) {
                 Box(Modifier.padding(20.dp)) {
                     val iconPainter =
-                        runCatching { painterResource(id = R.drawable.ic_launcher_foreground) }.getOrNull()
+                        // Предпочитаем собственный логотип, затем foreground адаптивной иконки, затем round
+                        runCatching { painterResource(id = R.drawable.logo_wikitok) }.getOrNull()
+                            ?: runCatching { painterResource(id = R.drawable.ic_launcher_foreground) }.getOrNull()
                             ?: runCatching { painterResource(id = R.mipmap.ic_launcher_round) }.getOrNull()
 
                     if (iconPainter != null) {
