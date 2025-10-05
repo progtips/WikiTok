@@ -39,13 +39,7 @@ fun SettingsScreen(
             Text("Тема", style = MaterialTheme.typography.titleMedium)
             SegmentedButtonsTheme(selected = state.theme, onSelect = vm::onThemeChange)
 
-            OutlinedTextField(
-                value = state.wikiLang,
-                onValueChange = { vm.onWikiLangChange(it.take(5)) },
-                label = { Text("Язык Wikipedia (ru / en)") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
+            // Поле языка Wikipedia убрано по требованию
 
             // Переключатель сохранения истории скрыт по требованию
 
@@ -58,31 +52,27 @@ fun SettingsScreen(
                 "#FFF9C4", // бледно-жёлтый (Yellow 100)
                 "#6650A3"  // фиолетовый (текущий фирменный)
             )
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                for (row in palette.chunked(4)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        row.forEach { hex ->
-                            val selected = hex.equals(state.cardBgHex, ignoreCase = true)
-                            val color = runCatching { androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(hex)) }
-                                .getOrDefault(MaterialTheme.colorScheme.surface)
-                            Box(
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(CircleShape)
-                                    .background(color)
-                                    .border(
-                                        width = if (selected) 3.dp else 1.dp,
-                                        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                                        shape = CircleShape
-                                    )
-                                    .clickable { vm.onCardBgHexChange(hex) }
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                palette.forEach { hex ->
+                    val selected = hex.equals(state.cardBgHex, ignoreCase = true)
+                    val color = runCatching { androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(hex)) }
+                        .getOrDefault(MaterialTheme.colorScheme.surface)
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(color)
+                            .border(
+                                width = if (selected) 3.dp else 1.dp,
+                                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                                shape = CircleShape
                             )
-                        }
-                    }
+                            .clickable { vm.onCardBgHexChange(hex) }
+                    )
                 }
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 OutlinedButton(onClick = onOpenAbout) { Text("О программе") }
             }
         }

@@ -5,6 +5,7 @@ import com.example.wikitok.data.wiki.WikipediaApi
 import com.example.wikitok.data.wiki.toDomain
 import com.example.wikitok.data.prefs.ICategoryWeightsStore
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeout
 
 class ApiArticlesSource(private val api: WikipediaApi, private val store: ICategoryWeightsStore? = null) : ArticlesSource {
     override suspend fun fetchBatch(n: Int): List<Article> {
@@ -22,9 +23,9 @@ class ApiArticlesSource(private val api: WikipediaApi, private val store: ICateg
                 val dto = if (pickTop) {
                     val cat = top3[rrIndex % top3.size]
                     rrIndex++
-                    api.fetchByCategory(category = cat)
+                    withTimeout(1500) { api.fetchByCategory(category = cat) }
                 } else {
-                    api.randomSummary()
+                    withTimeout(1500) { api.randomSummary() }
                 }
                 val a = dto.toDomain()
                 if (a.pageId > 0 && seen.add(a.pageId)) {

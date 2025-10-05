@@ -111,6 +111,9 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
     var progress by remember { mutableStateOf(0) }
     val settingsRepo = com.wikitok.settings.LocalSettingsRepository.current
     val settings by settingsRepo.settingsFlow.collectAsState(initial = com.wikitok.settings.Settings())
+    val cardBgInt = runCatching { android.graphics.Color.parseColor(settings.cardBgHex) }.getOrDefault(0xFF919191.toInt())
+    val cardBgColor = Color(cardBgInt)
+    val overlayTextColor = if (settings.cardBgHex.equals("#FFF9C4", ignoreCase = true)) Color.Black else Color.White
 
     // Делаем 2 страницы: текущая и «следующая», чтобы пользователь мог свайпнуть вверх
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { if (current != null) 2 else 1 })
@@ -134,18 +137,26 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
 
     // Если пользователь доскроллил до второй страницы — подгружаем следующую один раз за визит на страницу 1
     var requestedNext by remember { mutableStateOf(false) }
-    // Если стоим на странице 1 и не идёт загрузка — запросим следующую один раз
-    LaunchedEffect(pagerState.currentPage, loading) {
-        if (pagerState.currentPage == 1 && !loading && !requestedNext) {
+    // Если пользователь доскроллил до страницы 1 жестом — один раз запросим следующую
+    LaunchedEffect(pagerState.currentPage) {
+        if (pagerState.currentPage == 1 && !requestedNext) {
             requestedNext = true
             vm.loadNext()
         }
     }
-    // Когда текущая карточка сменилась после запроса next — мягко вернёмся на страницу 0
+    // Когда текущая карточка сменилась после запроса next — плавно вернёмся на страницу 0 (если не идёт жест)
     LaunchedEffect(current) {
-        if (requestedNext && pagerState.currentPage == 1) {
-            kotlinx.coroutines.delay(50)
+        // Если текущая карточка пропала (например, во время подгрузки) — гарантированно вернёмся на страницу 0,
+        // чтобы пейджер не завис на пустой второй странице
+        if (current == null && pagerState.currentPage != 0) {
             pagerState.scrollToPage(0)
+        }
+        if (requestedNext) {
+            // подождём, чтобы композиция успела обновить содержимое
+            kotlinx.coroutines.delay(120)
+            if (pagerState.currentPage == 1 && !pagerState.isScrollInProgress) {
+                pagerState.animateScrollToPage(0)
+            }
             requestedNext = false
         }
     }
@@ -169,18 +180,20 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                 .background(MaterialTheme.colorScheme.background) // <-- фон под пейджером
             ) { page ->
                 val article = current
+                val showLoadingNext = requestedNext
                 if (page == 1) {
                     // Заглушка «следующая карточка»
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.background),
+                            .background(cardBgColor),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        if (loading) {
-                            Text("Загружаем следующую…")
-                        }
+                        Text(
+                            text = if (showLoadingNext) "Загружаем следующую…" else "Проведите вверх для следующей статьи",
+                            color = overlayTextColor
+                        )
                     }
                 } else if (article == null) {
                     Column(
@@ -217,13 +230,26 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                             // Запрашиваем следующую карточку и визуально переводим на страницу 1
                             requestedNext = true
                             vm.onLike()
-                            scope.launch { pagerState.animateScrollToPage(1) }
+                            scope.launch {
+                                if (pagerState.currentPage == 0 && current != null && !pagerState.isScrollInProgress) {
+                                    pagerState.animateScrollToPage(1)
+                                }
+                            }
                             scope.launch {
                                 kotlinx.coroutines.delay(180)
                                 likePulse = false
                             }
                         },
-                        onDislike = { vm.onSkip() },
+                        onDislike = {
+                            // Поведение, аналогичное лайку: анимируем на страницу 1 и запрашиваем следующую
+                            requestedNext = true
+                            vm.onSkip()
+                            scope.launch {
+                                if (pagerState.currentPage == 0 && current != null && !pagerState.isScrollInProgress) {
+                                    pagerState.animateScrollToPage(1)
+                                }
+                            }
+                        },
                         onOpen = {
                             val encoded = try {
                                 java.net.URLEncoder.encode(article.title, Charsets.UTF_8.name()).replace('+', '_')

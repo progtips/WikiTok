@@ -45,6 +45,7 @@ fun ArticleCard(
     val cardBgColor = runCatching {
         android.graphics.Color.parseColor(settings.cardBgHex)
     }.getOrDefault(0xFF919191.toInt())
+    val overlayTextColor = if (settings.cardBgHex.equals("#FFF9C4", ignoreCase = true)) Color.Black else Color.White
 
     val talkBackText = buildString {
         append(a.title)
@@ -89,7 +90,7 @@ fun ArticleCard(
             ) {
                 Text(
                     a.title,
-                    color = Color.White,
+                    color = overlayTextColor,
                     style = MaterialTheme.typography.headlineSmall,
                     maxLines = 2,
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
@@ -103,7 +104,7 @@ fun ArticleCard(
                 if (!secondaryText.isNullOrBlank()) {
                     Text(
                         secondaryText,
-                        color = Color.White,
+                        color = overlayTextColor,
                         maxLines = 7,
                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                     )
@@ -123,7 +124,7 @@ fun ArticleCard(
                     Icon(
                         imageVector = Icons.Filled.Settings,
                         contentDescription = "Настройки",
-                        tint = Color.White,
+                        tint = overlayTextColor,
                         modifier = Modifier.clickable { onOpenSettings() }
                     )
                     Button(

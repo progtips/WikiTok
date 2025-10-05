@@ -19,15 +19,28 @@ class FeedBuffer(
     private val mutex = Mutex()
     private val buffer = ArrayList<Article>()
     private val seenIds = HashSet<Long>()
+    private var hasPrimed: Boolean = false
 
     override suspend fun primeIfNeeded() = mutex.withLock {
         if (buffer.size < capacity / 2) {
             val need = capacity - buffer.size
-            val batch = source.fetchBatch(need * 3) // запас, чтобы отфильтровать дубли и недавние
+
+            // Быстрый путь на старте: попытаться взять 1 статью максимально быстро
+            if (!hasPrimed && buffer.isEmpty()) {
+                runCatching { source.fetchBatch(1) }.getOrNull()?.forEach { a ->
+                    val skipRecent = recentHistory?.wasRecentlyShown(a.pageId) == true
+                    if (!skipRecent && seenIds.add(a.pageId) && buffer.size < capacity) buffer += a
+                }
+            }
+
+            // Основная догрузка (умеренная на старте, больше после)
+            val batchSize = if (!hasPrimed) need else (need * 2)
+            val batch = runCatching { source.fetchBatch(batchSize) }.getOrDefault(emptyList())
             for (a in batch) {
                 val skipRecent = recentHistory?.wasRecentlyShown(a.pageId) == true
                 if (!skipRecent && seenIds.add(a.pageId) && buffer.size < capacity) buffer += a
             }
+            hasPrimed = true
         }
     }
 
