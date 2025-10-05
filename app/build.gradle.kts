@@ -72,6 +72,7 @@ dependencies {
 
     // DataStore
     implementation(libs.datastore.preferences)
+    implementation("androidx.datastore:datastore:1.1.1")
 
     // Explicit deps requested
     implementation("androidx.datastore:datastore-preferences:1.1.1")
@@ -84,6 +85,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
     testImplementation("org.mockito:mockito-core:5.12.0")
+    testImplementation("androidx.test:core:1.5.0")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

@@ -32,6 +32,8 @@ import android.content.Intent
 import android.net.Uri
 import kotlin.math.max
 import kotlinx.coroutines.launch
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.wikitok.domain.feed.FeedViewModel as NewFeedVm
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -74,44 +76,17 @@ fun ArticleCardPlaceholder(index: Int, isLoading: Boolean) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FeedScreen(navController: androidx.navigation.NavHostController) {
-    val vm: FeedViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val vm: NewFeedVm = hiltViewModel()
     val context = LocalContext.current
-    LaunchedEffect(Unit) { vm.attach(context) }
-    val items by vm.items.collectAsState()
+    val current by vm.current.collectAsState()
+    val loading by vm.loading.collectAsState()
     val settingsRepo = com.wikitok.settings.LocalSettingsRepository.current
     val settings by settingsRepo.settingsFlow.collectAsState(initial = com.wikitok.settings.Settings())
 
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { max(items.size, 1) })
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 1 })
 
-    // Первичный автозапуск, если по какой-то причине init не успел
-    LaunchedEffect(items.size) {
-        if (items.isEmpty()) {
-            vm.onNeedMore()
-        }
-    }
-
-    LaunchedEffect(pagerState.currentPage, items.size) {
-        if (items.size >= 2 && pagerState.currentPage >= items.size - 2) {
-            vm.onNeedMore()
-        }
-    }
-
-    // Учёт времени просмотра страниц
-    var lastPage by remember { mutableStateOf<Int?>(null) }
-    var lastStartMs by remember { mutableLongStateOf(0L) }
-    LaunchedEffect(pagerState.currentPage) {
-        val now = System.currentTimeMillis()
-        val prevPage = lastPage
-        if (prevPage != null && lastStartMs > 0L) {
-            val prevId = items.getOrNull(prevPage)?.id
-            val dwellMs = now - lastStartMs
-            if (prevId != null && dwellMs > 0L) {
-                vm.onImpression(prevId, dwellMs)
-            }
-        }
-        lastPage = pagerState.currentPage
-        lastStartMs = now
-    }
+    // Первичная загрузка текущей статьи
+    LaunchedEffect(Unit) { vm.loadNext() }
 
     val scope = rememberCoroutineScope()
 
@@ -126,27 +101,30 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background) // <-- фон под пейджером
         ) { page ->
-            val article = items.getOrNull(page)
+            val article = current
             if (article == null) {
-                ArticleCardPlaceholder(page, isLoading = items.isEmpty())
+                ArticleCardPlaceholder(page, isLoading = loading)
             } else {
+                val uiArticle = com.example.wikitok.data.Article(
+                    id = article.title,
+                    title = article.title,
+                    description = article.summary,
+                    extract = article.summary,
+                    imageUrl = article.imageUrl,
+                    url = ""
+                )
                 ArticleCard(
-                    a = article,
-                    onLike = {
-                        vm.onLike(article)
-                        scope.launch {
-                            val next = (page + 1).coerceAtMost(max(items.size - 1, 0))
-                            if (next != page) pagerState.animateScrollToPage(next)
-                        }
+                    a = uiArticle,
+                    onLike = { vm.onLike() },
+                    onDislike = { vm.onSkip() },
+                    onOpen = {
+                        val encoded = try {
+                            java.net.URLEncoder.encode(article.title, Charsets.UTF_8.name()).replace('+', '_')
+                        } catch (_: Throwable) { article.title.replace(' ', '_') }
+                        val lang = java.util.Locale.getDefault().language.takeIf { it.isNotBlank() } ?: "ru"
+                        val url = "https://${lang}.wikipedia.org/wiki/${encoded}"
+                        openArticle(context, url, settings)
                     },
-                    onDislike = {
-                        vm.onDislike(article)
-                        scope.launch {
-                            val next = (page + 1).coerceAtMost(max(items.size - 1, 0))
-                            if (next != page) pagerState.animateScrollToPage(next)
-                        }
-                    },
-                    onOpen = { openArticle(context, article.url, settings) },
                     onOpenSettings = { navController.navigate("settings") }
                 )
             }
