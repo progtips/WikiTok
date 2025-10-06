@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -71,15 +72,16 @@ fun ArticleCard(
             // Верхняя область под изображение: фон как у плашки текста (#919191)
             Box(
                 Modifier
-                    .weight(1f)
                     .fillMaxWidth()
-                    .background(Color(cardBgColor)),
+                    .weight(1f)
+                    .background(Color(cardBgColor))
+                    .heightIn(min = 240.dp),
                 contentAlignment = Alignment.Center
             ) {
                 a.imageUrl?.let {
                     WikiImage(
                         url = it,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }

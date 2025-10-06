@@ -61,6 +61,7 @@ import kotlinx.coroutines.launch
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.wikitok.domain.feed.FeedViewModel as NewFeedVm
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.key
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -153,8 +154,14 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                                 val page = pair.second
                                 if (scrolling || disableActions) return@collect
                                 when (page) {
-                                    0 -> { viewModel.loadPrev(); scope.launch { pagerState.scrollToPage(1) } }
-                                    2 -> { viewModel.loadNext(); scope.launch { pagerState.scrollToPage(1) } }
+                                    0 -> {
+                                        scope.launch { pagerState.scrollToPage(1) }
+                                        viewModel.loadPrev()
+                                    }
+                                    2 -> {
+                                        scope.launch { pagerState.scrollToPage(1) }
+                                        viewModel.loadNext()
+                                    }
                                 }
                             }
                     }
@@ -164,35 +171,38 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                         modifier = Modifier
                             .fillMaxSize()
                             .background(cardBg),
-                        userScrollEnabled = !disableActions
+                        userScrollEnabled = !disableActions,
+                        beyondBoundsPageCount = 1
                     ) { page ->
-                        val aDomain = when (page) {
-                            0 -> prev ?: article
-                            1 -> article
-                            else -> nextPreview ?: article
+                        key(page) {
+                            val aDomain = when (page) {
+                                0 -> prev ?: article
+                                1 -> article
+                                else -> nextPreview ?: article
+                            }
+                            val ui = com.example.wikitok.data.Article(
+                                id = aDomain.title,
+                                title = aDomain.title,
+                                description = aDomain.summary,
+                                extract = aDomain.summary,
+                                imageUrl = aDomain.imageUrl,
+                                url = ""
+                            )
+                            ArticleCard(
+                                a = ui,
+                                onLike = { if (!disableActions) viewModel.onLike() },
+                                onDislike = { if (!disableActions) viewModel.onSkip() },
+                                onOpen = {
+                                    val encoded = try {
+                                        java.net.URLEncoder.encode(aDomain.title, Charsets.UTF_8.name()).replace('+', '_')
+                                    } catch (_: Throwable) { aDomain.title.replace(' ', '_') }
+                                    val lang = java.util.Locale.getDefault().language.takeIf { it.isNotBlank() } ?: "ru"
+                                    val url = "https://${lang}.wikipedia.org/wiki/${encoded}"
+                                    openArticle(context, url, settings)
+                                },
+                                onOpenSettings = { navController.navigate("settings") }
+                            )
                         }
-                        val ui = com.example.wikitok.data.Article(
-                            id = aDomain.title,
-                            title = aDomain.title,
-                            description = aDomain.summary,
-                            extract = aDomain.summary,
-                            imageUrl = aDomain.imageUrl,
-                            url = ""
-                        )
-                        ArticleCard(
-                            a = ui,
-                            onLike = { if (!disableActions) viewModel.onLike() },
-                            onDislike = { if (!disableActions) viewModel.onSkip() },
-                            onOpen = {
-                                val encoded = try {
-                                    java.net.URLEncoder.encode(aDomain.title, Charsets.UTF_8.name()).replace('+', '_')
-                                } catch (_: Throwable) { aDomain.title.replace(' ', '_') }
-                                val lang = java.util.Locale.getDefault().language.takeIf { it.isNotBlank() } ?: "ru"
-                                val url = "https://${lang}.wikipedia.org/wiki/${encoded}"
-                                openArticle(context, url, settings)
-                            },
-                            onOpenSettings = { navController.navigate("settings") }
-                        )
                     }
 
                     if (isFetchingNext) {

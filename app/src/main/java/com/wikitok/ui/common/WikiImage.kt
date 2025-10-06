@@ -20,8 +20,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import coil.ImageLoader
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.wikitok.settings.LocalSettingsRepository
@@ -34,14 +36,23 @@ fun WikiImage(
     panoramaHeightDp: Dp = 300.dp,
 ) {
     val context = LocalContext.current
-    val imageLoader = remember { WikimediaImageLoader.create(context) }
+    val imageLoader = remember {
+        ImageLoader.Builder(context)
+            .crossfade(false)
+            .build()
+    }
 
-    val request = ImageRequest.Builder(context)
-        .data(url)
-        .crossfade(false)
-        .addHeader("User-Agent", "WikiTok/1.0 (contact: dev@example.com)")
-        .addHeader("Referer", "https://wikipedia.org/")
-        .build()
+    val request = remember(url) {
+        ImageRequest.Builder(context)
+            .data(url)
+            .memoryCacheKey(url)
+            .diskCacheKey(url)
+            .allowHardware(true)
+            .crossfade(false)
+            .addHeader("User-Agent", "WikiTok/1.0 (contact: dev@example.com)")
+            .addHeader("Referer", "https://wikipedia.org/")
+            .build()
+    }
 
     val settingsRepo = LocalSettingsRepository.current
     val settings by settingsRepo.settingsFlow.collectAsState(initial = com.wikitok.settings.Settings())
