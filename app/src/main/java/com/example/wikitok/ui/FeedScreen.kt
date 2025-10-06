@@ -171,8 +171,7 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                         modifier = Modifier
                             .fillMaxSize()
                             .background(cardBg),
-                        userScrollEnabled = !disableActions,
-                        beyondBoundsPageCount = 1
+                        userScrollEnabled = !disableActions
                     ) { page ->
                         key(page) {
                             val aDomain = when (page) {
