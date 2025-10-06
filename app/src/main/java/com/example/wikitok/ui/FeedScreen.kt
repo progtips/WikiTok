@@ -60,6 +60,7 @@ import kotlin.math.max
 import kotlinx.coroutines.launch
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.wikitok.domain.feed.FeedViewModel as NewFeedVm
+import androidx.compose.runtime.snapshotFlow
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -105,6 +106,8 @@ fun ArticleCardPlaceholder(index: Int, isLoading: Boolean) {
 fun FeedScreen(navController: androidx.navigation.NavHostController) {
     val viewModel: NewFeedVm = hiltViewModel()
     val current by viewModel.current.collectAsState()
+    val prev by viewModel.prev.collectAsState()
+    val nextPreview by viewModel.nextPreview.collectAsState()
     val isInitialLoading by viewModel.isInitialLoading.collectAsState()
     val isFetchingNext by viewModel.isFetchingNext.collectAsState()
     val error by viewModel.error.collectAsState(null)
@@ -113,8 +116,17 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
     val settingsRepo = com.wikitok.settings.LocalSettingsRepository.current
     val settings by settingsRepo.settingsFlow.collectAsState(initial = com.wikitok.settings.Settings())
 
-    Scaffold(containerColor = MaterialTheme.colorScheme.background) { _ ->
-        Box(Modifier.fillMaxSize()) {
+    val cardBgInt = runCatching {
+        android.graphics.Color.parseColor(settings.cardBgHex)
+    }.getOrDefault(0xFF919191.toInt())
+    val cardBg = Color(cardBgInt)
+
+    Scaffold(containerColor = cardBg) { _ ->
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(cardBg)
+        ) {
             when {
                 isInitialLoading && current == null -> {
                     androidx.compose.material3.CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -130,21 +142,58 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                         imageUrl = article.imageUrl,
                         url = ""
                     )
-                    ArticleCard(
-                        a = uiArticle,
-                        onLike = { if (!disableActions) viewModel.onLike() },
-                        onDislike = { if (!disableActions) viewModel.onSkip() },
-                        onNext = { if (!disableActions) viewModel.loadNext() },
-                        onOpen = {
-                            val encoded = try {
-                                java.net.URLEncoder.encode(article.title, Charsets.UTF_8.name()).replace('+', '_')
-                            } catch (_: Throwable) { article.title.replace(' ', '_') }
-                            val lang = java.util.Locale.getDefault().language.takeIf { it.isNotBlank() } ?: "ru"
-                            val url = "https://${lang}.wikipedia.org/wiki/${encoded}"
-                            openArticle(context, url, settings)
-                        },
-                        onOpenSettings = { navController.navigate("settings") }
-                    )
+
+                    val pagerState = rememberPagerState(initialPage = 1, pageCount = { 3 })
+                    val scope = rememberCoroutineScope()
+
+                    LaunchedEffect(Unit) {
+                        snapshotFlow { pagerState.isScrollInProgress to pagerState.currentPage }
+                            .collect { pair ->
+                                val scrolling = pair.first
+                                val page = pair.second
+                                if (scrolling || disableActions) return@collect
+                                when (page) {
+                                    0 -> { viewModel.loadPrev(); scope.launch { pagerState.scrollToPage(1) } }
+                                    2 -> { viewModel.loadNext(); scope.launch { pagerState.scrollToPage(1) } }
+                                }
+                            }
+                    }
+
+                    VerticalPager(
+                        state = pagerState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(cardBg),
+                        userScrollEnabled = !disableActions
+                    ) { page ->
+                        val aDomain = when (page) {
+                            0 -> prev ?: article
+                            1 -> article
+                            else -> nextPreview ?: article
+                        }
+                        val ui = com.example.wikitok.data.Article(
+                            id = aDomain.title,
+                            title = aDomain.title,
+                            description = aDomain.summary,
+                            extract = aDomain.summary,
+                            imageUrl = aDomain.imageUrl,
+                            url = ""
+                        )
+                        ArticleCard(
+                            a = ui,
+                            onLike = { if (!disableActions) viewModel.onLike() },
+                            onDislike = { if (!disableActions) viewModel.onSkip() },
+                            onOpen = {
+                                val encoded = try {
+                                    java.net.URLEncoder.encode(aDomain.title, Charsets.UTF_8.name()).replace('+', '_')
+                                } catch (_: Throwable) { aDomain.title.replace(' ', '_') }
+                                val lang = java.util.Locale.getDefault().language.takeIf { it.isNotBlank() } ?: "ru"
+                                val url = "https://${lang}.wikipedia.org/wiki/${encoded}"
+                                openArticle(context, url, settings)
+                            },
+                            onOpenSettings = { navController.navigate("settings") }
+                        )
+                    }
 
                     if (isFetchingNext) {
                         androidx.compose.material3.CircularProgressIndicator(

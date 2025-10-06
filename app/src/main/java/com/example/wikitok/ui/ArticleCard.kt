@@ -29,24 +29,13 @@ import com.wikitok.ui.common.WikiImage
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.wikitok.settings.LocalSettingsRepository
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalDensity
-import kotlin.math.abs
-import kotlin.math.roundToInt
-import androidx.compose.foundation.layout.offset
-import androidx.compose.runtime.setValue
-import androidx.compose.animation.core.animateFloatAsState
 
 @Composable
 fun ArticleCard(
     a: Article,
     onLike: () -> Unit,
     onDislike: () -> Unit,
-    onNext: () -> Unit,
     onOpen: () -> Unit,
     onOpenSettings: () -> Unit
 ) {
@@ -68,43 +57,16 @@ fun ArticleCard(
         }
     }
 
-    var rawOffsetY by remember { mutableStateOf(0f) }
-    val animatedOffsetY by animateFloatAsState(targetValue = rawOffsetY, label = "articleSwipeOffset")
-    val offsetY = animatedOffsetY
-    var dragged by remember { mutableStateOf(false) }
-
     Box(
         Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(Color(cardBgColor))
             .semantics { contentDescription = talkBackText }
-            .pointerInput(Unit) {
-                detectDragGestures(
-                    onDragEnd = {
-                        if (dragged) onNext()
-                        rawOffsetY = 0f
-                        dragged = false
-                    },
-                    onDragCancel = { rawOffsetY = 0f; dragged = false },
-                    onDrag = { change, dragAmount ->
-                        change.consume()
-                        rawOffsetY += dragAmount.y
-                        if (!dragged && kotlin.math.abs(rawOffsetY) > 4f) dragged = true
-                        if (kotlin.math.abs(rawOffsetY) > 48f) {
-                            onNext()
-                            rawOffsetY = 0f
-                            dragged = false
-                            // сбрасываем активный жест
-                            change.consume()
-                        }
-                    }
-                )
-            }
+            .clickable { onOpen() }
     ) {
         Column(
             Modifier
                 .fillMaxSize()
-                .offset { IntOffset(0, offsetY.roundToInt()) }
         ) {
             // Верхняя область под изображение: фон как у плашки текста (#919191)
             Box(

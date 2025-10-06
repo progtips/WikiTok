@@ -5,4 +5,5 @@ import com.example.wikitok.domain.Article
 interface IFeedBuffer {
     suspend fun primeIfNeeded()
     suspend fun next(): Article?
+    suspend fun peekNext(): Article?
 }

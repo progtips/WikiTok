@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.util.ArrayDeque
 
 @HiltViewModel
 class FeedViewModel @Inject constructor(
@@ -46,9 +47,17 @@ class FeedViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     private val loadMutex = Mutex()
+    private val history = ArrayDeque<Article>()
+
+    private val _prev = MutableStateFlow<Article?>(null)
+    val prev: StateFlow<Article?> = _prev
+
+    private val _nextPreview = MutableStateFlow<Article?>(null)
+    val nextPreview: StateFlow<Article?> = _nextPreview
 
     init {
         viewModelScope.launch { loadNextInternal() }
+        viewModelScope.launch { updateNextPreview() }
     }
 
     fun loadNext() {
@@ -56,34 +65,45 @@ class FeedViewModel @Inject constructor(
     }
 
     private suspend fun loadNextInternal() {
-        // 1) Пинаем подкачку (быстро возвращается)
-        runCatching { feedBuffer.primeIfNeeded() }
-
         val firstLoad = _current.value == null
         if (firstLoad) _isInitialLoading.value = true else _isFetchingNext.value = true
+        val t0 = android.os.SystemClock.elapsedRealtime()
 
         try {
-            var next: Article? = null
-            repeat(3) { attempt ->
-                val candidate = runCatching { feedBuffer.next() }.getOrNull()
-                if (candidate != null && candidate.pageId != _current.value?.pageId) {
-                    next = candidate
-                    return@repeat
+            loadMutex.withLock {
+                // 1) Первая попытка: prime + next
+                val primeResult = runCatching { feedBuffer.primeIfNeeded() }
+                if (primeResult.isFailure) {
+                    _error.value = primeResult.exceptionOrNull()?.message ?: "prime_failed"
+                    return@withLock
                 }
-                // уменьшенная задержка, чтобы ускорить перелистывание
-                kotlinx.coroutines.delay(60L + attempt * 60L)
-                runCatching { feedBuffer.primeIfNeeded() }
-            }
 
-            if (next == null) {
-                _error.value = "empty_feed"
-                return
-            }
+                var next: Article? = runCatching { feedBuffer.next() }.getOrNull()
 
-            _current.value = next
-            _error.value = null
-            if (com.example.wikitok.BuildConfig.DEBUG) {
-                android.util.Log.d("Feed", "show pageId=" + next?.pageId)
+                // 2) Автоматический повтор: ещё раз prime + next, если пусто
+                if (next == null) {
+                    runCatching { feedBuffer.primeIfNeeded() }
+                    next = runCatching { feedBuffer.next() }.getOrNull()
+                }
+
+                if (next == null) {
+                    _error.value = "empty_feed"
+                    android.util.Log.w("Feed", "empty_feed after two attempts")
+                    return@withLock
+                }
+
+                // Успех: сохраняем предыдущую статью в историю и показываем новую
+                _current.value?.let { history.addLast(it) }
+                _current.value = next
+                _prev.value = history.lastOrNull()
+                _error.value = null
+                if (com.example.wikitok.BuildConfig.DEBUG) {
+                    val dt = android.os.SystemClock.elapsedRealtime() - t0
+                    android.util.Log.d("Perf", "loadNextInternal dt=${dt}ms")
+                    android.util.Log.d("Feed", "show pageId=${next.pageId}")
+                }
+                viewModelScope.launch { feedBuffer.primeIfNeeded() }
+                viewModelScope.launch { updateNextPreview() }
             }
         } catch (t: Throwable) {
             _error.value = t.message ?: "network_error"
@@ -93,30 +113,35 @@ class FeedViewModel @Inject constructor(
         }
     }
 
-    fun onLike() {
-        val a = _current.value ?: return
+    fun onLike() { viewModelScope.launch { loadNextInternal() } }
+
+    fun onSkip() { viewModelScope.launch { loadNextInternal() } }
+
+    fun refresh() { viewModelScope.launch { loadNextInternal() } }
+
+    fun loadPrev() {
         viewModelScope.launch {
-            if (com.example.wikitok.BuildConfig.DEBUG) {
-                android.util.Log.d("Feed", "like pageId=" + a.pageId + ", cats=" + a.categories)
+            loadMutex.withLock {
+                if (history.isNotEmpty()) {
+                    val prev = history.removeLast()
+                    _current.value = prev
+                    _error.value = null
+                    // на всякий случай подпинаем подкачку
+                    viewModelScope.launch { feedBuffer.primeIfNeeded() }
+                    _prev.value = history.lastOrNull()
+                    viewModelScope.launch { updateNextPreview() }
+                } else {
+                    // если истории нет — оставляем как есть
+                    android.util.Log.d("Feed", "prev: history is empty")
+                }
             }
-            likesRepository.like(a)
-            preferencesStore.bumpPositive(a.categories)
-            loadNextInternal()
         }
     }
 
-    fun onSkip() {
-        val a = _current.value ?: return
-        viewModelScope.launch {
-            if (com.example.wikitok.BuildConfig.DEBUG) {
-                android.util.Log.d("Feed", "skip pageId=" + a.pageId + ", cats=" + a.categories)
-            }
-            preferencesStore.bumpNegative(a.categories)
-            loadNextInternal()
+    private suspend fun updateNextPreview() {
+        runCatching {
+            feedBuffer.primeIfNeeded()
+            _nextPreview.value = feedBuffer.peekNext()
         }
-    }
-
-    fun unlike(pageId: Long) {
-        viewModelScope.launch { likesRepository.unlike(pageId) }
     }
 }
