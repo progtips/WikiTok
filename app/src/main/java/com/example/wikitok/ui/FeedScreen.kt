@@ -134,6 +134,7 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                         a = uiArticle,
                         onLike = { if (!disableActions) viewModel.onLike() },
                         onDislike = { if (!disableActions) viewModel.onSkip() },
+                        onNext = { if (!disableActions) viewModel.loadNext() },
                         onOpen = {
                             val encoded = try {
                                 java.net.URLEncoder.encode(article.title, Charsets.UTF_8.name()).replace('+', '_')

@@ -70,8 +70,8 @@ class FeedViewModel @Inject constructor(
                     next = candidate
                     return@repeat
                 }
-                // небольшая задержка, чтобы подкачка успела
-                kotlinx.coroutines.delay(180L + attempt * 120L)
+                // уменьшенная задержка, чтобы ускорить перелистывание
+                kotlinx.coroutines.delay(60L + attempt * 60L)
                 runCatching { feedBuffer.primeIfNeeded() }
             }
 
