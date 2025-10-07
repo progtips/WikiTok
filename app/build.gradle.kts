@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.serialization.json)
 
     // Images
+    implementation("io.coil-kt:coil:2.6.0")
     implementation(libs.coil.compose)
     implementation(libs.coil.svg)
 

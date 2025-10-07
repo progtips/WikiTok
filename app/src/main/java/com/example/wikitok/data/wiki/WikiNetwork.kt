@@ -1,7 +1,7 @@
 package com.example.wikitok.data.wiki
 
 import com.example.wikitok.data.WikiRepository
-import kotlinx.serialization.json.Json
+import com.example.wikitok.util.Jsons
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.Interceptor
@@ -38,10 +38,7 @@ private fun createRetrofit(): Retrofit {
         .retryOnConnectionFailure(true)
         .build()
 
-    val json = Json {
-        ignoreUnknownKeys = true
-        explicitNulls = false
-    }
+    val json = Jsons.default
 
     val contentType = "application/json".toMediaType()
 

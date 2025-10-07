@@ -6,7 +6,7 @@ import androidx.datastore.dataStore
 import com.example.wikitok.data.prefs.StringDataSerializer
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
+import com.example.wikitok.util.Jsons
 import java.util.ArrayDeque
 
 private val Context.recentHistoryStore: DataStore<String> by dataStore(
@@ -18,7 +18,7 @@ private val Context.recentHistoryStore: DataStore<String> by dataStore(
 private data class RecentDto(val ids: List<Long> = emptyList())
 
 class RecentHistoryStore(private val context: Context, private val capacity: Int = 50) : IRecentHistory {
-    private val json = Json { }
+    private val json = Jsons.default
     private val memory = ArrayDeque<Long>()
 
     override suspend fun addShown(pageId: Long) {

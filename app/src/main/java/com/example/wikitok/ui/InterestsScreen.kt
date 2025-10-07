@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -38,7 +39,7 @@ fun InterestsScreen(onBack: () -> Unit, vm: InterestsViewModel = hiltViewModel()
                     steps = 10
                 )
                 Text("${"%.2f".format(value)}")
-                Divider()
+                HorizontalDivider()
             }
         }
     }

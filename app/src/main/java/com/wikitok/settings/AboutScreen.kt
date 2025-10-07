@@ -10,9 +10,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.OpenInNew
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
@@ -74,7 +74,7 @@ fun AboutScreen(
                 navigationIcon = {
                     if (onBack != null) {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.Outlined.ArrowBack, contentDescription = "Назад")
+                            Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Назад")
                         }
                     }
                 }
@@ -178,7 +178,7 @@ private fun AboutItemRow(
         headlineContent = { Text(title) },
         supportingContent = { if (subtitle != null) Text(subtitle) },
         leadingContent = icon,
-        trailingContent = { Icon(Icons.Outlined.OpenInNew, contentDescription = null) },
+        trailingContent = { Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null) },
         modifier = Modifier
             .fillMaxWidth()
             .defaultMinSize(minHeight = 56.dp)

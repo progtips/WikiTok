@@ -6,7 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
-import kotlinx.serialization.json.Json
+import com.example.wikitok.util.Jsons
 import okhttp3.OkHttpClient
 import dagger.hilt.android.qualifiers.ApplicationContext
 import retrofit2.Retrofit
@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit
 @InstallIn(SingletonComponent::class)
 object WikiModule {
 
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Jsons.default
 
     @Provides
     @Singleton

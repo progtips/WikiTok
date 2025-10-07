@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
+import com.example.wikitok.util.Jsons
 
 private val Context.categoryWeightsDataStore: DataStore<String> by dataStore(
     fileName = "category_weights.json",
@@ -18,7 +18,7 @@ private val Context.categoryWeightsDataStore: DataStore<String> by dataStore(
 private data class WeightsDto(val map: Map<String, Float> = emptyMap())
 
 class CategoryWeightsStore(private val context: Context) : ICategoryWeightsStore {
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Jsons.default
 
     override fun observeWeights(): Flow<Map<String, Float>> =
         context.categoryWeightsDataStore.data.map { raw ->

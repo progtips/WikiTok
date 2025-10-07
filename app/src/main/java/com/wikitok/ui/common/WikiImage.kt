@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.ImageLoader
 import coil.compose.SubcomposeAsyncImage
-import coil.compose.LocalImageLoader
+import coil.imageLoader
 import coil.request.ImageRequest
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
@@ -37,7 +37,7 @@ fun WikiImage(
     panoramaHeightDp: Dp = 300.dp,
 ) {
     val context = LocalContext.current
-    val imageLoader = LocalImageLoader.current
+    val imageLoader = context.imageLoader
 
     val request = remember(url) {
         ImageRequest.Builder(context)
