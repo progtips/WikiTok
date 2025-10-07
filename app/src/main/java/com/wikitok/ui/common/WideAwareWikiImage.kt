@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.graphicsLayer
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
+import coil.compose.LocalImageLoader
 import coil.request.ImageRequest
 import androidx.core.graphics.drawable.toBitmap
 import androidx.palette.graphics.Palette
@@ -36,12 +37,19 @@ fun WideAwareWikiImage(
     fallbackAspectRatio: Float = 16f/9f
 ) {
     val context = LocalContext.current
-    val painter = rememberAsyncImagePainter(
-        model = ImageRequest.Builder(context)
+    val imageLoader = LocalImageLoader.current
+    val request = remember(url) {
+        ImageRequest.Builder(context)
             .data(url)
-            .crossfade(true)
+            .memoryCacheKey(url)
+            .diskCacheKey(url)
+            .crossfade(false)
             .allowHardware(false)
             .build()
+    }
+    val painter = rememberAsyncImagePainter(
+        model = request,
+        imageLoader = imageLoader
     )
 
     val intrinsic = painter.intrinsicSize
