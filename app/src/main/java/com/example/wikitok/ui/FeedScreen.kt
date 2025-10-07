@@ -112,6 +112,7 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
     val isInitialLoading by viewModel.isInitialLoading.collectAsState()
     val isFetchingNext by viewModel.isFetchingNext.collectAsState()
     val error by viewModel.error.collectAsState(null)
+    val lastError by viewModel.lastError.collectAsState()
 
     val context = LocalContext.current
     val settingsRepo = com.wikitok.settings.LocalSettingsRepository.current
@@ -130,7 +131,7 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
         ) {
             when {
                 isInitialLoading && current == null -> {
-                    androidx.compose.material3.CircularProgressIndicator(Modifier.align(Alignment.Center))
+                    Text("Загрузка…", modifier = Modifier.align(Alignment.Center), color = MaterialTheme.colorScheme.onBackground)
                 }
                 current != null -> {
                     val article = current!!
@@ -187,8 +188,8 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                                 imageUrl = aDomain.imageUrl,
                                 url = ""
                             )
-                            ArticleCard(
-                                a = ui,
+                            ShowArticleCard(
+                                article = ui,
                                 onLike = { if (!disableActions) viewModel.onLike() },
                                 onDislike = { if (!disableActions) viewModel.onSkip() },
                                 onOpen = {
@@ -210,6 +211,25 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                             strokeWidth = 2.dp
                         )
                     }
+
+                    if (!lastError.isNullOrBlank()) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .padding(top = 8.dp)
+                        ) {
+                            androidx.compose.material3.Surface(
+                                color = MaterialTheme.colorScheme.errorContainer,
+                                contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                            ) {
+                                Text(
+                                    text = lastError ?: "",
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                )
+                            }
+                        }
+                    }
                 }
                 else -> {
                     Column(
@@ -218,12 +238,30 @@ fun FeedScreen(navController: androidx.navigation.NavHostController) {
                     ) {
                         Text(text = error ?: "nothing_to_show")
                         Spacer(Modifier.height(12.dp))
-                        Button(onClick = { viewModel.loadNext() }) { Text("Повторить") }
+                        Button(onClick = { viewModel.retry() }) { Text("Повторить") }
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun ShowArticleCard(
+    article: com.example.wikitok.data.Article,
+    onLike: () -> Unit,
+    onDislike: () -> Unit,
+    onOpen: () -> Unit,
+    onOpenSettings: () -> Unit
+) {
+    // Делегируем текущей карточке, которая уже использует WikiImage внутри
+    ArticleCard(
+        a = article,
+        onLike = onLike,
+        onDislike = onDislike,
+        onOpen = onOpen,
+        onOpenSettings = onOpenSettings
+    )
 }
 
 private fun openArticle(context: android.content.Context, url: String, settings: com.wikitok.settings.Settings) {

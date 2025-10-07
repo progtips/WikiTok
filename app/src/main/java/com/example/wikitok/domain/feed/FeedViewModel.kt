@@ -6,6 +6,7 @@ import com.example.wikitok.data.likes.ILikesRepository
 import com.example.wikitok.data.prefs.ICategoryWeightsStore
 import com.example.wikitok.domain.Article
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.example.wikitok.data.wiki.RandomArticleSource
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +24,8 @@ import java.util.ArrayDeque
 class FeedViewModel @Inject constructor(
     private val likesRepository: ILikesRepository,
     private val preferencesStore: ICategoryWeightsStore,
-    private val feedBuffer: IFeedBuffer
+    private val feedBuffer: IFeedBuffer,
+    private val randomSource: RandomArticleSource
 ) : ViewModel() {
 
     private val _current = MutableStateFlow<Article?>(null)
@@ -37,6 +39,9 @@ class FeedViewModel @Inject constructor(
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
+
+    private val _lastError = MutableStateFlow<String?>(null)
+    val lastError: StateFlow<String?> = _lastError
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val isLikedCurrent: StateFlow<Boolean> = _current
@@ -56,8 +61,34 @@ class FeedViewModel @Inject constructor(
     val nextPreview: StateFlow<Article?> = _nextPreview
 
     init {
-        viewModelScope.launch { loadNextInternal() }
-        viewModelScope.launch { updateNextPreview() }
+        // 1) Быстрый первый кадр: мгновенно тянем случайную статью и снимаем initialLoading, даже при ошибке
+        viewModelScope.launch {
+            android.util.Log.d("FeedVM", "TurboStart: fetching random page...")
+            val first = runCatching { randomSource.fetch() }
+                .onFailure { 
+                    android.util.Log.e("FeedVM", "TurboStart failed", it)
+                    _lastError.value = it.message ?: it::class.java.simpleName
+                }
+                .getOrNull()
+            _current.value = first ?: runCatching { randomSource.localFallback() }.getOrNull()
+            _isInitialLoading.value = false
+        }
+        // 2) Фоновая подкачка буфера
+        viewModelScope.launch {
+            runCatching { feedBuffer.primeIfNeeded() }
+        }
+    }
+
+    fun retry() {
+        viewModelScope.launch {
+            _lastError.value = null
+            val result = runCatching { randomSource.fetch() }
+                .onFailure { _lastError.value = it.message ?: it::class.java.simpleName }
+                .getOrNull()
+            if (result != null) {
+                _current.value = result
+            }
+        }
     }
 
     fun loadNext() {
@@ -144,4 +175,7 @@ class FeedViewModel @Inject constructor(
             _nextPreview.value = feedBuffer.peekNext()
         }
     }
+
+    // Публичный доступ к следующей статье напрямую из буфера
+    suspend fun nextFromBuffer(): Article? = feedBuffer.next()
 }
